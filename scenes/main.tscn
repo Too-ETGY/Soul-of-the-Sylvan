@@ -1,0 +1,33 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="main_script"]
+[ext_resource type="Script" path="res://scripts/world.gd" id="world_script"]
+[ext_resource type="Script" path="res://scripts/camera.gd" id="camera_script"]
+[ext_resource type="Script" path="res://scripts/placement_system.gd" id="placement_script"]
+[ext_resource type="Script" path="res://scripts/sacred_tree.gd" id="sacred_tree_script"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="hud_scene"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("main_script")
+
+[node name="World" type="Node2D" parent="."]
+script = ExtResource("world_script")
+
+[node name="EcosystemContainer" type="Node2D" parent="World"]
+
+[node name="SacredTree" type="Sprite2D" parent="World"]
+script = ExtResource("sacred_tree_script")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("camera_script")
+
+[node name="PlacementSystem" type="Node2D" parent="."]
+script = ExtResource("placement_script")
+
+[node name="PreviewSprite" type="Sprite2D" parent="PlacementSystem"]
+visible = false
+
+[node name="PreviewPond" type="Node2D" parent="PlacementSystem"]
+visible = false
+
+[node name="HUD" parent="." instance=ExtResource("hud_scene")]
