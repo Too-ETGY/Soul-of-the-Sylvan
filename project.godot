@@ -20,15 +20,15 @@ config/icon="res://Asset/icon.svg"
 GridManager="*res://scripts/grid_manager.gd"
 LifeForceManager="*res://scripts/life_force_manager.gd"
 DayCycle="*res://scripts/day_cycle.gd"
+SaveManager="*res://scripts/save_manager.gd"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
 textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"

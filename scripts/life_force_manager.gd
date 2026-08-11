@@ -2,7 +2,7 @@ extends Node
 
 ## Autoload: Manages the Life Force resource.
 
-const STARTING_LIFE_FORCE: int = 50
+const STARTING_LIFE_FORCE: int = 30
 
 var _life_force: int = STARTING_LIFE_FORCE
 

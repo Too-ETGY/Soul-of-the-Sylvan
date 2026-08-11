@@ -1,33 +1,30 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene format=3 uid="uid://b08noccbajctp"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="main_script"]
-[ext_resource type="Script" path="res://scripts/world.gd" id="world_script"]
-[ext_resource type="Script" path="res://scripts/camera.gd" id="camera_script"]
-[ext_resource type="Script" path="res://scripts/placement_system.gd" id="placement_script"]
-[ext_resource type="Script" path="res://scripts/sacred_tree.gd" id="sacred_tree_script"]
-[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="hud_scene"]
+[ext_resource type="Script" uid="uid://58phu6ua7815" path="res://scripts/main.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/world.tscn" id="2"]
+[ext_resource type="Script" uid="uid://bvku7ti4rrsuy" path="res://scripts/camera.gd" id="3"]
+[ext_resource type="Script" uid="uid://d1y7kvtt41hkh" path="res://scripts/placement_system.gd" id="4"]
+[ext_resource type="PackedScene" uid="uid://dktylpimxn3d3" path="res://scenes/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6"]
 
-[node name="Main" type="Node2D"]
-script = ExtResource("main_script")
+[node name="Main" type="Node2D" unique_id=41991574]
+script = ExtResource("1")
 
-[node name="World" type="Node2D" parent="."]
-script = ExtResource("world_script")
+[node name="World" parent="." unique_id=1616853830 instance=ExtResource("2")]
 
-[node name="EcosystemContainer" type="Node2D" parent="World"]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=202778175]
+anchor_mode = 0
+script = ExtResource("3")
 
-[node name="SacredTree" type="Sprite2D" parent="World"]
-script = ExtResource("sacred_tree_script")
+[node name="PlacementSystem" type="Node2D" parent="." unique_id=1542396111]
+script = ExtResource("4")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-script = ExtResource("camera_script")
-
-[node name="PlacementSystem" type="Node2D" parent="."]
-script = ExtResource("placement_script")
-
-[node name="PreviewSprite" type="Sprite2D" parent="PlacementSystem"]
+[node name="PreviewSprite" type="Sprite2D" parent="PlacementSystem" unique_id=150287702]
 visible = false
 
-[node name="PreviewPond" type="Node2D" parent="PlacementSystem"]
+[node name="PreviewPond" type="Node2D" parent="PlacementSystem" unique_id=1791653192]
 visible = false
 
-[node name="HUD" parent="." instance=ExtResource("hud_scene")]
+[node name="HUD" parent="." unique_id=2047432761 instance=ExtResource("5")]
+
+[node name="PauseMenu" parent="." unique_id=1727478731 instance=ExtResource("6")]

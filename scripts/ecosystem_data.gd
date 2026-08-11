@@ -10,13 +10,13 @@ class EcosystemDef:
 	var type: Type
 	var display_name: String
 	var life_force_cost: int
-	var allowed_terrain: Array[String]  # terrain types this can be placed on
-	var min_distance_same: int          # minimum cells from same type
+	var allowed_terrain: Array[String]
+	var min_distance_same: int
 	var base_oxygen: int
 	var base_water: int
 	var base_biodiversity: int
-	var lf_per_tick: int                # flat LF generated each day
-	var texture_path: String            # res:// path to the sprite
+	var lf_per_tick: int
+	var texture_path: String
 
 # --- Placed ecosystem instance ---
 class EcosystemInstance:
@@ -26,9 +26,15 @@ class EcosystemInstance:
 	var water: int
 	var biodiversity: int
 	var lf_per_tick: int
-	var node: Node2D  # reference to the visual node in the world
+	var node: Node2D  # reference to visual node in world
+
+	var is_occupied_by_human: bool = false
+	var is_broken: bool = false
+	var days_broken: int = 0
 
 	func get_total_stats() -> Dictionary:
+		if is_broken:
+			return {"oxygen": 0, "water": 0, "biodiversity": 0}
 		return {
 			"oxygen": oxygen,
 			"water": water,
@@ -46,11 +52,11 @@ static func _ensure_initialized() -> void:
 	grove.type = Type.FOREST_GROVE
 	grove.display_name = "Forest Grove"
 	grove.life_force_cost = 15
-	grove.allowed_terrain = ["grass", "dirt"]
+	grove.allowed_terrain = ["grass", "tilled_dirt"]
 	grove.min_distance_same = 2
-	grove.base_oxygen = 5
-	grove.base_water = 1
-	grove.base_biodiversity = 3
+	grove.base_oxygen = 7
+	grove.base_water = 3
+	grove.base_biodiversity = 5
 	grove.lf_per_tick = 2
 	grove.texture_path = "res://Asset/tree_assets/Curved_tree1.png"
 	definitions[Type.FOREST_GROVE] = grove
@@ -59,24 +65,24 @@ static func _ensure_initialized() -> void:
 	pond.type = Type.POND
 	pond.display_name = "Pond"
 	pond.life_force_cost = 20
-	pond.allowed_terrain = ["water_source"]
+	pond.allowed_terrain = ["grass", "tilled_dirt"]
 	pond.min_distance_same = 3
-	pond.base_oxygen = 1
-	pond.base_water = 8
-	pond.base_biodiversity = 4
+	pond.base_oxygen = 3
+	pond.base_water = 10
+	pond.base_biodiversity = 6
 	pond.lf_per_tick = 3
-	pond.texture_path = ""  # Will use procedural blue circle
+	pond.texture_path = ""
 	definitions[Type.POND] = pond
 
 	var flowers := EcosystemDef.new()
 	flowers.type = Type.WILDFLOWERS
 	flowers.display_name = "Wildflowers"
 	flowers.life_force_cost = 10
-	flowers.allowed_terrain = ["grass"]
+	flowers.allowed_terrain = ["grass", "tilled_dirt"]
 	flowers.min_distance_same = 1
-	flowers.base_oxygen = 0
-	flowers.base_water = 0
-	flowers.base_biodiversity = 6
+	flowers.base_oxygen = 2
+	flowers.base_water = 2
+	flowers.base_biodiversity = 8
 	flowers.lf_per_tick = 1
 	flowers.texture_path = "res://Asset/tree_assets/Chanterelles1.png"
 	definitions[Type.WILDFLOWERS] = flowers
@@ -91,7 +97,6 @@ static func get_all_types() -> Array:
 	return [Type.FOREST_GROVE, Type.POND, Type.WILDFLOWERS]
 
 
-## Creates a new ecosystem instance with base stats.
 static func create_instance(type: Type, cell: Vector2i) -> EcosystemInstance:
 	_ensure_initialized()
 	var def := get_def(type)
@@ -105,19 +110,21 @@ static func create_instance(type: Type, cell: Vector2i) -> EcosystemInstance:
 	return inst
 
 
-## Recalculate an ecosystem's stats based on neighbors (synergy).
-## Call this whenever a new ecosystem is placed near existing ones.
 static func apply_synergies(inst: EcosystemInstance, neighbors: Array) -> void:
+	if inst.is_broken:
+		return
+
 	_ensure_initialized()
 	var def := get_def(inst.type)
 
-	# Reset to base stats
 	inst.oxygen = def.base_oxygen
 	inst.water = def.base_water
 	inst.biodiversity = def.base_biodiversity
 	inst.lf_per_tick = def.lf_per_tick
 
 	for neighbor: EcosystemInstance in neighbors:
+		if neighbor.is_broken:
+			continue
 		match inst.type:
 			Type.FOREST_GROVE:
 				if neighbor.type == Type.POND:

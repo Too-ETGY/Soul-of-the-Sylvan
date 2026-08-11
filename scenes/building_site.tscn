@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/building_site.gd" id="1"]
+
+[node name="BuildingSite" type="Node2D"]
+script = ExtResource("1")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+offset_left = -40.0
+offset_top = 20.0
+offset_right = 40.0
+offset_bottom = 32.0
+max_value = 2.5
+show_percentage = false
+
+[node name="Label" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -10.0
+offset_right = 50.0
+offset_bottom = 15.0
+theme_override_colors/font_color = Color(0.9, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "Planting..."
+horizontal_alignment = 1

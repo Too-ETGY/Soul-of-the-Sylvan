@@ -110,7 +110,12 @@ func _validate_current_cell() -> void:
 		_is_valid_placement = false
 		return
 
-	var error := GridManager.validate_placement(_hovered_cell, _selected_type)
+	var tree_restoration := 10.0
+	var tree := get_tree().root.find_child("SacredTree", true, false)
+	if tree and tree.has_method("get_restoration_percent"):
+		tree_restoration = tree.get_restoration_percent()
+
+	var error := GridManager.validate_placement(_hovered_cell, _selected_type, tree_restoration)
 	if error != "":
 		_is_valid_placement = false
 		return
