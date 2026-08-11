@@ -135,3 +135,24 @@ static func apply_synergies(inst: EcosystemInstance, neighbors: Array) -> void:
 			Type.WILDFLOWERS:
 				if neighbor.type == Type.POND or neighbor.type == Type.FOREST_GROVE:
 					inst.biodiversity += 3
+
+
+## Checks if an ecosystem instance has satisfied relationship rules with any active neighbor.
+static func has_valid_relationship(inst: EcosystemInstance, neighbors: Array) -> bool:
+	if inst == null or inst.is_broken:
+		return false
+
+	for neighbor: EcosystemInstance in neighbors:
+		if neighbor.is_broken:
+			continue
+		match inst.type:
+			Type.FOREST_GROVE:
+				if neighbor.type == Type.POND or neighbor.type == Type.FOREST_GROVE:
+					return true
+			Type.POND:
+				if neighbor.type == Type.FOREST_GROVE or neighbor.type == Type.WILDFLOWERS:
+					return true
+			Type.WILDFLOWERS:
+				if neighbor.type == Type.POND or neighbor.type == Type.FOREST_GROVE:
+					return true
+	return false

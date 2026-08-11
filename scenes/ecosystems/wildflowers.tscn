@@ -1,24 +1,57 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://blxu05fm4bp48"]
 
-[ext_resource type="Script" path="res://scripts/ecosystems/wildflowers.gd" id="1"]
-[ext_resource type="Texture2D" path="res://Asset/tree_assets/Chanterelles1.png" id="2"]
-[ext_resource type="Texture2D" path="res://Asset/tree_assets/White-red_mushroom1.png" id="3"]
-[ext_resource type="Texture2D" path="res://Asset/tree_assets/Beige_green_mushroom1.png" id="4"]
+[ext_resource type="Script" uid="uid://bo55pbi51e73n" path="res://scripts/ecosystems/wildflowers.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://ebylkx1akyg7" path="res://Asset/tree_assets/Beige_green_mushroom1.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://cmpk4d6qvudb3" path="res://Asset/Characters/Free Chicken Sprites.png" id="4_m6qtl"]
 
-[node name="Wildflowers" type="Node2D"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_77dox"]
+atlas = ExtResource("4_m6qtl")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bhgwc"]
+atlas = ExtResource("4_m6qtl")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_sy6eh"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_77dox")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bhgwc")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Wildflowers" type="Node2D" unique_id=1312018643]
 script = ExtResource("1")
 
-[node name="Mushroom1" type="Sprite2D" parent="."]
-texture = ExtResource("2")
-scale = Vector2(0.9, 0.9)
-position = Vector2(-20, -10)
-
-[node name="Mushroom2" type="Sprite2D" parent="."]
-texture = ExtResource("3")
-scale = Vector2(0.8, 0.8)
-position = Vector2(15, 10)
-
-[node name="Mushroom3" type="Sprite2D" parent="."]
+[node name="Mushroom6" type="Sprite2D" parent="." unique_id=1795084740]
+position = Vector2(15.000001, -11.999999)
+scale = Vector2(0.30749997, 0.41687497)
 texture = ExtResource("4")
-scale = Vector2(0.7, 0.7)
+
+[node name="Mushroom3" type="Sprite2D" parent="." unique_id=1928605657]
 position = Vector2(0, -25)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("4")
+
+[node name="Mushroom4" type="Sprite2D" parent="." unique_id=392979811]
+position = Vector2(6.3999996, -9.1)
+scale = Vector2(0.39375, 0.471875)
+texture = ExtResource("4")
+
+[node name="Mushroom5" type="Sprite2D" parent="." unique_id=1097003321]
+position = Vector2(-4, 0.9999962)
+scale = Vector2(0.50625, 0.44374996)
+texture = ExtResource("4")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=591303593]
+position = Vector2(-24, -17)
+scale = Vector2(2.125, 1.8749999)
+sprite_frames = SubResource("SpriteFrames_sy6eh")
+autoplay = "default"
+frame_progress = 0.43053862

@@ -14,6 +14,10 @@ const TERRAIN_NAMES: Dictionary = {
 	Terrain.GRASS: "grass",
 }
 
+## Grass transform area radius in cells around ecosystem anchor (default: 3).
+## TO REVERT BACK TO 2x2, CHANGE GRASS_TRANSFORM_RADIUS TO 2.
+const GRASS_TRANSFORM_RADIUS: int = 3
+
 # Grid data: Vector2i -> Terrain type
 var _terrain: Dictionary = {}
 # Grid cell occupied mapping: Vector2i -> EcosystemData.EcosystemInstance
@@ -127,7 +131,7 @@ func validate_placement(anchor_cell: Vector2i, eco_type: EcosystemData.Type, tre
 
 
 ## Transform surrounding tilled dirt into grass around placed ecosystem.
-func _transform_surrounding_dirt_to_grass(anchor_cell: Vector2i, radius: int = 2) -> void:
+func _transform_surrounding_dirt_to_grass(anchor_cell: Vector2i, radius: int = GRASS_TRANSFORM_RADIUS) -> void:
 	for dx in range(-radius, 2 + radius):
 		for dy in range(-radius, 2 + radius):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
@@ -137,12 +141,16 @@ func _transform_surrounding_dirt_to_grass(anchor_cell: Vector2i, radius: int = 2
 					terrain_changed.emit(cell, Terrain.GRASS)
 
 
-## Check if a cell is covered by any active (non-broken) ecosystem's grass area.
-func _is_cell_covered_by_any_active_ecosystem(cell: Vector2i, radius: int = 2) -> bool:
+## Check if a cell is covered by any active (non-broken) ecosystem's grass area that satisfies relationship rules.
+func _is_cell_covered_by_any_active_ecosystem(cell: Vector2i, radius: int = GRASS_TRANSFORM_RADIUS) -> bool:
 	for anchor: Vector2i in _unique_ecosystems:
 		var eco: EcosystemData.EcosystemInstance = _unique_ecosystems[anchor]
 		if eco.is_broken:
 			continue
+		var neighbors := get_ecosystem_neighbors(anchor, 4)
+		if not EcosystemData.has_valid_relationship(eco, neighbors):
+			continue
+
 		var min_x := anchor.x - radius
 		var max_x := anchor.x + 1 + radius
 		var min_y := anchor.y - radius
@@ -154,7 +162,7 @@ func _is_cell_covered_by_any_active_ecosystem(cell: Vector2i, radius: int = 2) -
 
 
 ## Revert grass tiles around an ecosystem back to tilled dirt if isolated.
-func _revert_surrounding_grass_to_dirt(anchor_cell: Vector2i, radius: int = 2) -> void:
+func _revert_surrounding_grass_to_dirt(anchor_cell: Vector2i, radius: int = GRASS_TRANSFORM_RADIUS) -> void:
 	for dx in range(-radius, 2 + radius):
 		for dy in range(-radius, 2 + radius):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
@@ -179,8 +187,6 @@ func place_ecosystem(anchor_cell: Vector2i, eco_type: EcosystemData.Type, is_loa
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			_cell_ecosystem[cell] = instance
 
-	_transform_surrounding_dirt_to_grass(anchor_cell, 2)
-
 	var neighbors := get_ecosystem_neighbors(anchor_cell, 4)
 	EcosystemData.apply_synergies(instance, neighbors)
 
@@ -188,8 +194,31 @@ func place_ecosystem(anchor_cell: Vector2i, eco_type: EcosystemData.Type, is_loa
 		var n_neighbors := get_ecosystem_neighbors(neighbor.cell, 4)
 		EcosystemData.apply_synergies(neighbor, n_neighbors)
 
+	if is_loading:
+		if EcosystemData.has_valid_relationship(instance, neighbors):
+			_transform_surrounding_dirt_to_grass(anchor_cell, GRASS_TRANSFORM_RADIUS)
+
 	ecosystem_placed.emit(anchor_cell, instance, is_loading)
 	return instance
+
+
+## Called when ecosystem construction delay finishes.
+## Checks relationship rules and transforms dirt to grass if satisfied.
+func on_construction_completed(instance: EcosystemData.EcosystemInstance) -> void:
+	if instance == null or instance.is_broken:
+		return
+
+	var neighbors := get_ecosystem_neighbors(instance.cell, 4)
+
+	# 1. Check if newly placed ecosystem satisfies relationship rules
+	if EcosystemData.has_valid_relationship(instance, neighbors):
+		_transform_surrounding_dirt_to_grass(instance.cell, GRASS_TRANSFORM_RADIUS)
+
+	# 2. Check if any neighboring ecosystems NOW satisfy relationship rules
+	for neighbor: EcosystemData.EcosystemInstance in neighbors:
+		var n_neighbors := get_ecosystem_neighbors(neighbor.cell, 4)
+		if EcosystemData.has_valid_relationship(neighbor, n_neighbors):
+			_transform_surrounding_dirt_to_grass(neighbor.cell, GRASS_TRANSFORM_RADIUS)
 
 
 func restore_ecosystem_stats(inst: EcosystemData.EcosystemInstance) -> void:
@@ -202,6 +231,8 @@ func restore_ecosystem_stats(inst: EcosystemData.EcosystemInstance) -> void:
 		inst.node.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	var neighbors := get_ecosystem_neighbors(inst.cell, 4)
 	EcosystemData.apply_synergies(inst, neighbors)
+	if EcosystemData.has_valid_relationship(inst, neighbors):
+		_transform_surrounding_dirt_to_grass(inst.cell, GRASS_TRANSFORM_RADIUS)
 
 
 func remove_ecosystem(anchor_cell: Vector2i) -> void:
@@ -214,8 +245,9 @@ func remove_ecosystem(anchor_cell: Vector2i) -> void:
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			_cell_ecosystem.erase(cell)
 
-	_revert_surrounding_grass_to_dirt(anchor_cell, 2)
+	_revert_surrounding_grass_to_dirt(anchor_cell, GRASS_TRANSFORM_RADIUS)
 	ecosystem_removed.emit(anchor_cell)
+
 
 
 func clear_all() -> void:

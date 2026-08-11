@@ -1,12 +1,12 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://bb3f7egiwujkv"]
 
-[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwysr2340ueg5" path="res://scripts/pause_menu.gd" id="1"]
 
-[node name="PauseMenu" type="CanvasLayer"]
+[node name="PauseMenu" type="CanvasLayer" unique_id=96341904]
 process_mode = 3
 script = ExtResource("1")
 
-[node name="Overlay" type="ColorRect" parent="."]
+[node name="Overlay" type="ColorRect" parent="." unique_id=814618330]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -14,7 +14,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=1432295497]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -27,7 +27,7 @@ offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TitleLabel" type="Label" parent="Panel"]
+[node name="TitleLabel" type="Label" parent="Panel" unique_id=817388905]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -36,10 +36,10 @@ offset_bottom = 50.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
 theme_override_font_sizes/font_size = 20
-text = "⏸ PAUSED"
+text = "PAUSED"
 horizontal_alignment = 1
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=968914990]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -54,18 +54,18 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="ContinueButton" type="Button" parent="Panel/VBox"]
-layout_mode = 2
+[node name="ContinueButton" type="Button" parent="Panel/VBox" unique_id=119502183]
 custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
 text = "▶ Continue"
 
-[node name="ResetButton" type="Button" parent="Panel/VBox"]
-layout_mode = 2
+[node name="ResetButton" type="Button" parent="Panel/VBox" unique_id=43677039]
 custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.6, 0.4, 1)
-text = "🔄 Reset Progress"
+text = "Reset"
 
-[node name="ExitButton" type="Button" parent="Panel/VBox"]
-layout_mode = 2
+[node name="ExitButton" type="Button" parent="Panel/VBox" unique_id=1739860228]
 custom_minimum_size = Vector2(0, 36)
-text = "❌ Exit Game"
+layout_mode = 2
+text = "Exit"

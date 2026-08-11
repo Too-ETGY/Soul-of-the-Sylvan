@@ -27,6 +27,12 @@ func _ready() -> void:
 	preview_sprite.visible = false
 	preview_pond.visible = false
 
+	if preview_pond and preview_pond.get_child_count() == 0:
+		var pond_scene: PackedScene = load("res://scenes/ecosystems/pond.tscn")
+		if pond_scene:
+			var pond_inst := pond_scene.instantiate()
+			preview_pond.add_child(pond_inst)
+
 
 func start_placement(eco_type: EcosystemData.Type) -> void:
 	_selected_type = eco_type
@@ -152,7 +158,6 @@ func _draw() -> void:
 	var cell_size := float(GridManager.CELL_SIZE)
 	var top_left := Vector2(_hovered_cell.x * cell_size, _hovered_cell.y * cell_size)
 	var center_pos := GridManager.cell_to_world_2x2(_hovered_cell)
-	var def := EcosystemData.get_def(_selected_type)
 
 	# 1. Footprint (2x2 cells rectangle)
 	var foot_color := Color(0.2, 0.9, 0.2, 0.25) if _is_valid_placement else Color(0.9, 0.2, 0.2, 0.25)
@@ -161,14 +166,21 @@ func _draw() -> void:
 	draw_rect(Rect2(top_left, Vector2(cell_size * 2.0, cell_size * 2.0)), foot_color)
 	draw_rect(Rect2(top_left, Vector2(cell_size * 2.0, cell_size * 2.0)), foot_border, false, 2.0)
 
-	# 2. Rule Area overlay (Min distance & Synergy radius circle)
-	var radius_px := float(def.min_distance_same + 1) * cell_size
-	var area_color := Color(0.3, 0.8, 1.0, 0.08)
-	var area_border := Color(0.3, 0.8, 1.0, 0.4)
+	# 2. Rule / Grass Area overlay (Rectangle matching the grass transformation region)
+	var transform_radius := GridManager.GRASS_TRANSFORM_RADIUS
+	var area_top_left := Vector2(
+		(_hovered_cell.x - transform_radius) * cell_size,
+		(_hovered_cell.y - transform_radius) * cell_size
+	)
+	var area_span := (2 + transform_radius * 2) * cell_size
+	var area_rect := Rect2(area_top_left, Vector2(area_span, area_span))
 
-	# Translucent radius circle showing ecosystem influence/rule area
-	draw_circle(center_pos, radius_px, area_color)
-	draw_arc(center_pos, radius_px, 0.0, TAU, 48, area_border, 1.5)
+	var area_color := Color(0.3, 0.8, 1.0, 0.1)
+	var area_border := Color(0.3, 0.8, 1.0, 0.5)
+
+	# Translucent rectangle showing the wide grass/rule area it takes
+	draw_rect(area_rect, area_color)
+	draw_rect(area_rect, area_border, false, 2.0)
 
 	# Synergy connection lines to nearby existing ecosystems in range
 	var nearby := GridManager.get_ecosystem_neighbors(_hovered_cell, 4)

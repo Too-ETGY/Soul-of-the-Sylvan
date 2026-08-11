@@ -49,4 +49,7 @@ func _finish_building() -> void:
 		get_parent().add_child(eco_node)
 		_instance.node = eco_node
 
+	# Check relationship rules and trigger grass transformation after planting finishes
+	GridManager.on_construction_completed(_instance)
+
 	queue_free()
