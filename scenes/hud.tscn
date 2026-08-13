@@ -252,32 +252,141 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
+offset_left = -250.0
 offset_top = -65.0
-offset_right = 200.0
+offset_right = 250.0
 offset_bottom = -15.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="GroveButton" type="Button" parent="BottomCenterPalette" unique_id=2102800405]
-custom_minimum_size = Vector2(110, 48)
+custom_minimum_size = Vector2(115, 48)
 layout_mode = 2
 text = "🌲 Grove
 15 LF"
 
+[node name="GroveInfoButton" type="Button" parent="BottomCenterPalette/GroveButton"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -22.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = 22.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 10
+text = "i"
+
 [node name="PondButton" type="Button" parent="BottomCenterPalette" unique_id=801332544]
-custom_minimum_size = Vector2(110, 48)
+custom_minimum_size = Vector2(115, 48)
 layout_mode = 2
 text = "💧 Pond
 20 LF"
 
+[node name="PondInfoButton" type="Button" parent="BottomCenterPalette/PondButton"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -22.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = 22.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 10
+text = "i"
+
 [node name="FlowerButton" type="Button" parent="BottomCenterPalette" unique_id=1819167239]
-custom_minimum_size = Vector2(110, 48)
+custom_minimum_size = Vector2(115, 48)
 layout_mode = 2
 text = "🌸 Flowers
 10 LF"
+
+[node name="FlowerInfoButton" type="Button" parent="BottomCenterPalette/FlowerButton"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -22.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = 22.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 10
+text = "i"
+
+[node name="DenseButton" type="Button" parent="BottomCenterPalette"]
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+text = "🌳 Dense Forest
+35 LF"
+
+[node name="DenseInfoButton" type="Button" parent="BottomCenterPalette/DenseButton"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -22.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = 22.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 10
+text = "i"
+
+[node name="InfoPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -180.0
+offset_right = 230.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = -16.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="InfoPanel/VBox"]
+layout_mode = 2
+
+[node name="InfoTitle" type="Label" parent="InfoPanel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ecosystem Details"
+
+[node name="CloseInfoButton" type="Button" parent="InfoPanel/VBox/Header"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+text = "✕"
+
+[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBox"]
+layout_mode = 2
+
+[node name="InfoContent" type="RichTextLabel" parent="InfoPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Details go here..."
 
 [node name="TooltipLabel" type="Label" parent="." unique_id=16270765]
 visible = false
@@ -309,3 +418,4 @@ grow_vertical = 0
 texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
+

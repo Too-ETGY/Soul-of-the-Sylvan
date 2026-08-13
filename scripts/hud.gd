@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 ## HUD — swapped layout (Left Sidebar: Resources/Stats/Tree, Right Sidebar: Awareness/Pause).
-## Includes Ecosystem Inspector Card on hover/click.
+## Includes Ecosystem Inspector Card & Ecosystem Info Popup ('i' button details).
 
 @onready var lf_label: Label = $LeftSidebar/LifeForceLabel
 @onready var day_label: Label = $LeftSidebar/DayLabel
@@ -23,17 +23,28 @@ extends CanvasLayer
 @onready var pause_button: Button = $RightSidebar/PauseButton
 
 @onready var grove_button: Button = $BottomCenterPalette/GroveButton
+@onready var grove_info_button: Button = $BottomCenterPalette/GroveButton/GroveInfoButton
 @onready var pond_button: Button = $BottomCenterPalette/PondButton
+@onready var pond_info_button: Button = $BottomCenterPalette/PondButton/PondInfoButton
 @onready var flower_button: Button = $BottomCenterPalette/FlowerButton
+@onready var flower_info_button: Button = $BottomCenterPalette/FlowerButton/FlowerInfoButton
+@onready var dense_button: Button = $BottomCenterPalette/DenseButton
+@onready var dense_info_button: Button = $BottomCenterPalette/DenseButton/DenseInfoButton
 
 @onready var tooltip_label: Label = $TooltipLabel
 @onready var syva_portrait: TextureRect = $SyvaPortrait
 
-# Ecosystem Inspector Panel
+# Ecosystem Inspector Panel (World hover)
 @onready var inspector_panel: Panel = $InspectorPanel
 @onready var inspector_title: Label = $InspectorPanel/VBox/TitleLabel
 @onready var inspector_stats: Label = $InspectorPanel/VBox/StatsLabel
 @onready var inspector_status: Label = $InspectorPanel/VBox/StatusLabel
+
+# Ecosystem Info Popup Dialog ('i' button details)
+@onready var info_panel: Panel = $InfoPanel
+@onready var info_title: Label = $InfoPanel/VBox/Header/InfoTitle
+@onready var info_content: RichTextLabel = $InfoPanel/VBox/InfoContent
+@onready var close_info_button: Button = $InfoPanel/VBox/Header/CloseInfoButton
 
 var _placement_system: Node2D
 var _sacred_tree: Node
@@ -52,18 +63,28 @@ func setup(placement_system: Node2D, sacred_tree: Node) -> void:
 	grove_button.pressed.connect(_on_grove_pressed)
 	pond_button.pressed.connect(_on_pond_pressed)
 	flower_button.pressed.connect(_on_flower_pressed)
+	dense_button.pressed.connect(_on_dense_pressed)
 	restore_button.pressed.connect(_on_restore_pressed)
 	pause_button.pressed.connect(_on_pause_pressed)
+
+	grove_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.FOREST_GROVE))
+	pond_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.POND))
+	flower_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.WILDFLOWERS))
+	dense_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.DENSE_FOREST))
+	close_info_button.pressed.connect(func(): info_panel.visible = false)
 
 	var grove_def := EcosystemData.get_def(EcosystemData.Type.FOREST_GROVE)
 	var pond_def := EcosystemData.get_def(EcosystemData.Type.POND)
 	var flower_def := EcosystemData.get_def(EcosystemData.Type.WILDFLOWERS)
+	var dense_def := EcosystemData.get_def(EcosystemData.Type.DENSE_FOREST)
 
 	grove_button.text = "🌲 Grove\n%d LF" % grove_def.life_force_cost
 	pond_button.text = "💧 Pond\n%d LF" % pond_def.life_force_cost
 	flower_button.text = "🌸 Flowers\n%d LF" % flower_def.life_force_cost
+	dense_button.text = "🌳 Dense Forest\n%d LF" % dense_def.life_force_cost
 
 	inspector_panel.visible = false
+	info_panel.visible = false
 	_on_life_force_changed(LifeForceManager.get_life_force())
 	_update_forest_stats()
 	_update_tree_display()
@@ -72,16 +93,52 @@ func setup(placement_system: Node2D, sacred_tree: Node) -> void:
 
 func _process(_delta: float) -> void:
 	var lf := LifeForceManager.get_life_force()
+	var tree_pct: float = 10.0
+	if _sacred_tree and _sacred_tree.has_method("get_restoration_percent"):
+		tree_pct = _sacred_tree.get_restoration_percent()
+
 	grove_button.disabled = lf < EcosystemData.get_def(EcosystemData.Type.FOREST_GROVE).life_force_cost
 	pond_button.disabled = lf < EcosystemData.get_def(EcosystemData.Type.POND).life_force_cost
 	flower_button.disabled = lf < EcosystemData.get_def(EcosystemData.Type.WILDFLOWERS).life_force_cost
 
+	var dense_def := EcosystemData.get_def(EcosystemData.Type.DENSE_FOREST)
+	if tree_pct < dense_def.unlock_tree_percent:
+		dense_button.disabled = true
+		dense_button.text = "🔒 Locked\n40% Tree"
+	else:
+		dense_button.disabled = lf < dense_def.life_force_cost
+		dense_button.text = "🌳 Dense Forest\n%d LF" % dense_def.life_force_cost
+
 	if _sacred_tree and _sacred_tree.has_method("get_next_restore_cost"):
 		var cost: int = _sacred_tree.get_next_restore_cost()
 		restore_button.text = "✦ Restore (+1%%)\n%d LF" % cost
-		restore_button.disabled = (lf < cost) or (_sacred_tree.get_restoration_percent() >= 100.0)
+		restore_button.disabled = (lf < cost) or (tree_pct >= 100.0)
 
 	_check_hover_inspector()
+
+
+func show_ecosystem_info(type: EcosystemData.Type) -> void:
+	var def := EcosystemData.get_def(type)
+	info_title.text = "%s Details" % def.display_name
+
+	var check_size := def.get_checking_area_size()
+	var unlock_str := "✅ Unlocked" if def.unlock_tree_percent <= 0.0 else ("🔒 Unlocks at %.0f%% Sacred Tree" % def.unlock_tree_percent)
+
+	var bbcode := "[color=#aaddff][b]Base Cost:[/b][/color] %d Life Force\n" % def.life_force_cost
+	bbcode += "[color=#aaddff][b]Status:[/b][/color] %s\n" % unlock_str
+	bbcode += "[color=#aaddff][b]Dimensions:[/b][/color] Footprint [color=#ffdd77]%dx%d cells[/color] | Rule Area [color=#77ffbb]%dx%d cells[/color]\n" % [
+		def.footprint_size.x, def.footprint_size.y,
+		check_size.x, check_size.y
+	]
+	bbcode += "[color=#aaddff][b]Base Yield:[/b][/color] O₂: %d | 💧: %d | 🌿: %d (+%d LF/day)\n\n" % [
+		def.base_oxygen, def.base_water, def.base_biodiversity, def.lf_per_tick
+	]
+	bbcode += "[color=#ffcc66][b]Placement Rules:[/b][/color]\n%s\n\n" % def.placement_rules
+	bbcode += "[color=#66ffbb][b]Ecological Relationships:[/b][/color]\n%s\n\n" % def.relationships_info
+	bbcode += "[color=#cccccc][i]%s[/i][/color]" % def.description
+
+	info_content.text = bbcode
+	info_panel.visible = true
 
 
 func _check_hover_inspector() -> void:
@@ -171,6 +228,12 @@ func _on_flower_pressed() -> void:
 	if _placement_system:
 		_placement_system.start_placement(EcosystemData.Type.WILDFLOWERS)
 		tooltip_label.text = "Planting Wildflowers — click to plant, right-click to cancel"
+
+
+func _on_dense_pressed() -> void:
+	if _placement_system:
+		_placement_system.start_placement(EcosystemData.Type.DENSE_FOREST)
+		tooltip_label.text = "Planting Dense Forest — click to plant, right-click to cancel"
 
 
 func _on_restore_pressed() -> void:

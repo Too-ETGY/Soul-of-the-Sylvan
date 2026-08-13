@@ -7,10 +7,7 @@ extends Sprite2D
 ## Start at 10%. Going from 10% -> 11% costs 5 LF.
 ## Each +1% restoration increases the LF cost by 1.
 const START_PERCENT: float = 10.0
-const BASE_RESTORE_COST: int = 5  # Cost to go from 10% to 11%
-
-const SACRED_TREE_CELL: Vector2i = Vector2i(32, 32)  # Center of the map
-
+const BASE_RESTORE_COST: int = 5
 var _restoration_percent: float = START_PERCENT
 var _spirit_level: int = 0
 
@@ -19,7 +16,7 @@ signal restoration_changed(percent: float, spirit_level: int)
 
 func _ready() -> void:
 	# Position at the center of the world
-	position = GridManager.cell_to_world(SACRED_TREE_CELL)
+	position = GridManager.cell_to_world(GridManager.SACRED_TREE_CELL)
 
 	# Load texture
 	texture = load("res://Asset/tree_assets/Mega_tree1.png")

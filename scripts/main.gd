@@ -72,18 +72,22 @@ func _check_and_spawn_human_event() -> void:
 			var target_eco := eligible[idx]
 			eligible.remove_at(idx)
 
-			var spawn_pos := GridManager.cell_to_world_2x2(target_eco.cell)
-			var human_scene: PackedScene = load("res://scenes/human_event.tscn")
-			if human_scene:
-				var human: Node2D = human_scene.instantiate()
-				human.position = spawn_pos
-				human.setup_target(target_eco)
-				human.event_resolved.connect(_on_human_event_resolved)
-				world.add_child(human)
-				spawned_any = true
+			spawn_human_event_on(target_eco)
+			spawned_any = true
 
 	if spawned_any:
 		hud.tooltip_label.text = "⚠️ Human(s) occupied ecosystem(s)!"
+
+
+func spawn_human_event_on(target_eco: EcosystemData.EcosystemInstance) -> void:
+	var spawn_pos := GridManager.cell_to_world_footprint(target_eco.cell, target_eco.footprint_size)
+	var human_scene: PackedScene = load("res://scenes/human_event.tscn")
+	if human_scene:
+		var human: Node2D = human_scene.instantiate()
+		human.position = spawn_pos
+		human.setup_target(target_eco)
+		human.event_resolved.connect(_on_human_event_resolved)
+		world.add_child(human)
 
 
 func _on_human_event_resolved(awareness_gain: float) -> void:

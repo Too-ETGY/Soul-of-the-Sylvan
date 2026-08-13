@@ -85,18 +85,20 @@ func _process(_delta: float) -> void:
 	if not _is_placing:
 		return
 
+	var def := EcosystemData.get_def(_selected_type)
+
 	# Get mouse position in world space
 	var mouse_world := get_global_mouse_position()
-	# Top-left cell of 2x2 grid block
-	var cell := GridManager.world_to_cell(mouse_world - Vector2(GridManager.CELL_SIZE / 2.0, GridManager.CELL_SIZE / 2.0))
+	# Top-left anchor cell based on footprint offset
+	var cell := GridManager.world_to_cell(mouse_world - Vector2((def.footprint_size.x * GridManager.CELL_SIZE) / 2.0, (def.footprint_size.y * GridManager.CELL_SIZE) / 2.0))
 
 	if cell != _hovered_cell:
 		_hovered_cell = cell
 		_validate_current_cell()
 		queue_redraw()
 
-	# Center position of 2x2 ecosystem
-	var center_pos := GridManager.cell_to_world_2x2(cell)
+	# Center position of NxM ecosystem footprint
+	var center_pos := GridManager.cell_to_world_footprint(cell, def.footprint_size)
 	preview_sprite.global_position = center_pos
 	preview_pond.global_position = center_pos
 
@@ -150,40 +152,42 @@ func _confirm_placement() -> void:
 	queue_redraw()
 
 
-## Draw the 2x2 cell placement footprint and rule area (min-distance / synergy radius) overlay.
+## Draw the NxM cell placement footprint and checking area overlay rectangle.
 func _draw() -> void:
 	if not _is_placing or not GridManager.is_valid_cell(_hovered_cell):
 		return
 
+	var def := EcosystemData.get_def(_selected_type)
 	var cell_size := float(GridManager.CELL_SIZE)
 	var top_left := Vector2(_hovered_cell.x * cell_size, _hovered_cell.y * cell_size)
-	var center_pos := GridManager.cell_to_world_2x2(_hovered_cell)
+	var center_pos := GridManager.cell_to_world_footprint(_hovered_cell, def.footprint_size)
 
-	# 1. Footprint (2x2 cells rectangle)
+	# 1. Footprint (NxM cells rectangle)
+	var foot_size := Vector2(def.footprint_size.x * cell_size, def.footprint_size.y * cell_size)
 	var foot_color := Color(0.2, 0.9, 0.2, 0.25) if _is_valid_placement else Color(0.9, 0.2, 0.2, 0.25)
 	var foot_border := Color(0.2, 0.9, 0.2, 0.8) if _is_valid_placement else Color(0.9, 0.2, 0.2, 0.8)
 
-	draw_rect(Rect2(top_left, Vector2(cell_size * 2.0, cell_size * 2.0)), foot_color)
-	draw_rect(Rect2(top_left, Vector2(cell_size * 2.0, cell_size * 2.0)), foot_border, false, 2.0)
+	draw_rect(Rect2(top_left, foot_size), foot_color)
+	draw_rect(Rect2(top_left, foot_size), foot_border, false, 2.0)
 
-	# 2. Rule / Grass Area overlay (Rectangle matching the grass transformation region)
-	var transform_radius := GridManager.GRASS_TRANSFORM_RADIUS
+	# 2. Rule / Grass Area overlay (Rectangle matching checking area)
 	var area_top_left := Vector2(
-		(_hovered_cell.x - transform_radius) * cell_size,
-		(_hovered_cell.y - transform_radius) * cell_size
+		(_hovered_cell.x - def.margin_left) * cell_size,
+		(_hovered_cell.y - def.margin_top) * cell_size
 	)
-	var area_span := (2 + transform_radius * 2) * cell_size
-	var area_rect := Rect2(area_top_left, Vector2(area_span, area_span))
+	var area_span_x := float(def.footprint_size.x + def.margin_left + def.margin_right) * cell_size
+	var area_span_y := float(def.footprint_size.y + def.margin_top + def.margin_bottom) * cell_size
+	var area_rect := Rect2(area_top_left, Vector2(area_span_x, area_span_y))
 
 	var area_color := Color(0.3, 0.8, 1.0, 0.1)
 	var area_border := Color(0.3, 0.8, 1.0, 0.5)
 
-	# Translucent rectangle showing the wide grass/rule area it takes
+	# Translucent rectangle showing the checking/grass area it takes
 	draw_rect(area_rect, area_color)
 	draw_rect(area_rect, area_border, false, 2.0)
 
 	# Synergy connection lines to nearby existing ecosystems in range
-	var nearby := GridManager.get_ecosystem_neighbors(_hovered_cell, 4)
+	var nearby := GridManager.get_neighbors_for_type_at(_selected_type, _hovered_cell)
 	for neighbor: EcosystemData.EcosystemInstance in nearby:
-		var n_pos := GridManager.cell_to_world_2x2(neighbor.cell)
+		var n_pos := GridManager.cell_to_world_footprint(neighbor.cell, neighbor.footprint_size)
 		draw_line(center_pos, n_pos, Color(1.0, 0.9, 0.3, 0.6), 2.0)

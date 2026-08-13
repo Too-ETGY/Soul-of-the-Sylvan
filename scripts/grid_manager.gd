@@ -3,9 +3,10 @@ extends Node
 ## Autoload: Manages world grid, flat dirt/grass terrain, 2x2 ecosystem placement,
 ## human occupation degradation, broken 3-day decay, and daily LF formula calculation.
 
-const GRID_WIDTH: int = 64
-const GRID_HEIGHT: int = 64
+const GRID_WIDTH: int = 48
+const GRID_HEIGHT: int = 48
 const CELL_SIZE: int = 64  # pixels per cell
+const SACRED_TREE_CELL: Vector2i = Vector2i(24, 24)
 
 enum Terrain { TILLED_DIRT, GRASS }
 
@@ -83,34 +84,71 @@ func get_ecosystem_neighbors(anchor_cell: Vector2i, radius: int) -> Array:
 	return results
 
 
+## Returns all active (non-broken) ecosystem instances that overlap the given cell region.
+func get_ecosystems_in_region(min_cell: Vector2i, max_cell: Vector2i, exclude_anchor: Vector2i) -> Array:
+	var results: Array = []
+	var found: Dictionary = {}
+	for x in range(min_cell.x, max_cell.x + 1):
+		for y in range(min_cell.y, max_cell.y + 1):
+			var cell := Vector2i(x, y)
+			if _cell_ecosystem.has(cell):
+				var eco: EcosystemData.EcosystemInstance = _cell_ecosystem[cell]
+				if eco.cell != exclude_anchor and not found.has(eco.cell):
+					found[eco.cell] = true
+					results.append(eco)
+	return results
+
+
+## Returns neighboring ecosystem instances within the checking area of the given instance.
+func get_neighbors_for_instance(inst: EcosystemData.EcosystemInstance) -> Array:
+	var def := EcosystemData.get_def(inst.type)
+	var min_cell := Vector2i(inst.cell.x - def.margin_left, inst.cell.y - def.margin_top)
+	var max_cell := Vector2i(inst.cell.x + def.footprint_size.x - 1 + def.margin_right, inst.cell.y + def.footprint_size.y - 1 + def.margin_bottom)
+	return get_ecosystems_in_region(min_cell, max_cell, inst.cell)
+
+
+## Returns neighboring ecosystem instances within the checking area of a hypothetical ecosystem type at cell.
+func get_neighbors_for_type_at(type: EcosystemData.Type, cell: Vector2i) -> Array:
+	var def := EcosystemData.get_def(type)
+	var min_cell := Vector2i(cell.x - def.margin_left, cell.y - def.margin_top)
+	var max_cell := Vector2i(cell.x + def.footprint_size.x - 1 + def.margin_right, cell.y + def.footprint_size.y - 1 + def.margin_bottom)
+	return get_ecosystems_in_region(min_cell, max_cell, cell)
+
+
 ## Get allowed plantable cell radius based on Sacred Tree restoration percent.
-## < 40%: tiny radius (8 cells around center 32,32)
-## 40%..69%: medium radius (18 cells)
+## < 40%: compact radius (6 cells around Sacred Tree center)
+## 40%..69%: medium radius (12 cells)
 ## >= 70%: full map access
 func get_allowed_radius(restoration_percent: float) -> float:
 	if restoration_percent >= 70.0:
 		return 999.0  # Full map
 	elif restoration_percent >= 40.0:
-		return 18.0
+		return 12.0
 	else:
-		return 8.0
+		return 6.0
 
 
 func is_cell_in_allowed_region(cell: Vector2i, restoration_percent: float) -> bool:
 	var allowed_r := get_allowed_radius(restoration_percent)
 	if allowed_r >= 900.0:
 		return true
-	var tree_center := Vector2(32.0, 32.0)
+	var tree_center := Vector2(SACRED_TREE_CELL)
 	var dist := Vector2(cell).distance_to(tree_center)
 	return dist <= allowed_r
 
 
-## Check if a 2x2 ecosystem can be placed starting at top-left anchor cell.
+## Check if an ecosystem can be placed starting at top-left anchor cell.
 func validate_placement(anchor_cell: Vector2i, eco_type: EcosystemData.Type, tree_restoration: float = 10.0) -> String:
 	var def := EcosystemData.get_def(eco_type)
 
-	for dx in range(2):
-		for dy in range(2):
+	# Check Sacred Tree level unlock condition
+	if tree_restoration < def.unlock_tree_percent:
+		return "Requires Sacred Tree Restoration >= %.0f%%" % def.unlock_tree_percent
+
+	var footprint := def.footprint_size
+
+	for dx in range(footprint.x):
+		for dy in range(footprint.y):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			if not is_valid_cell(cell):
 				return "Out of bounds"
@@ -127,13 +165,28 @@ func validate_placement(anchor_cell: Vector2i, eco_type: EcosystemData.Type, tre
 			if distance < float(min_dist + 1):
 				return "Too close to another %s" % def.display_name
 
+	if eco_type == EcosystemData.Type.DENSE_FOREST:
+		# Check multiple Forest Groves nearby
+		var neighbors := get_neighbors_for_type_at(eco_type, anchor_cell)
+		var grove_count := 0
+		for neighbor in neighbors:
+			if neighbor.type == EcosystemData.Type.FOREST_GROVE and not neighbor.is_broken:
+				grove_count += 1
+		if grove_count < 2:
+			return "Requires at least 2 Forest Groves nearby"
+
+		# Check overall Biodiversity >= 20
+		var stats := get_forest_stats()
+		if stats["biodiversity"] < 20:
+			return "Requires total forest Biodiversity >= 20"
+
 	return ""  # Valid
 
 
-## Transform surrounding tilled dirt into grass around placed ecosystem.
-func _transform_surrounding_dirt_to_grass(anchor_cell: Vector2i, radius: int = GRASS_TRANSFORM_RADIUS) -> void:
-	for dx in range(-radius, 2 + radius):
-		for dy in range(-radius, 2 + radius):
+## Transform surrounding tilled dirt into grass around placed ecosystem based on its footprint and margins.
+func _transform_surrounding_dirt_to_grass(anchor_cell: Vector2i, def: EcosystemData.EcosystemDef) -> void:
+	for dx in range(-def.margin_left, def.footprint_size.x + def.margin_right):
+		for dy in range(-def.margin_top, def.footprint_size.y + def.margin_bottom):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			if is_valid_cell(cell):
 				if get_terrain(cell) != Terrain.GRASS:
@@ -142,19 +195,20 @@ func _transform_surrounding_dirt_to_grass(anchor_cell: Vector2i, radius: int = G
 
 
 ## Check if a cell is covered by any active (non-broken) ecosystem's grass area that satisfies relationship rules.
-func _is_cell_covered_by_any_active_ecosystem(cell: Vector2i, radius: int = GRASS_TRANSFORM_RADIUS) -> bool:
+func _is_cell_covered_by_any_active_ecosystem(cell: Vector2i) -> bool:
 	for anchor: Vector2i in _unique_ecosystems:
 		var eco: EcosystemData.EcosystemInstance = _unique_ecosystems[anchor]
 		if eco.is_broken:
 			continue
-		var neighbors := get_ecosystem_neighbors(anchor, 4)
+		var neighbors := get_neighbors_for_instance(eco)
 		if not EcosystemData.has_valid_relationship(eco, neighbors):
 			continue
 
-		var min_x := anchor.x - radius
-		var max_x := anchor.x + 1 + radius
-		var min_y := anchor.y - radius
-		var max_y := anchor.y + 1 + radius
+		var def := EcosystemData.get_def(eco.type)
+		var min_x := anchor.x - def.margin_left
+		var max_x := anchor.x + def.footprint_size.x - 1 + def.margin_right
+		var min_y := anchor.y - def.margin_top
+		var max_y := anchor.y + def.footprint_size.y - 1 + def.margin_bottom
 
 		if cell.x >= min_x and cell.x <= max_x and cell.y >= min_y and cell.y <= max_y:
 			return true
@@ -162,41 +216,42 @@ func _is_cell_covered_by_any_active_ecosystem(cell: Vector2i, radius: int = GRAS
 
 
 ## Revert grass tiles around an ecosystem back to tilled dirt if isolated.
-func _revert_surrounding_grass_to_dirt(anchor_cell: Vector2i, radius: int = GRASS_TRANSFORM_RADIUS) -> void:
-	for dx in range(-radius, 2 + radius):
-		for dy in range(-radius, 2 + radius):
+func _revert_surrounding_grass_to_dirt(anchor_cell: Vector2i, def: EcosystemData.EcosystemDef) -> void:
+	for dx in range(-def.margin_left, def.footprint_size.x + def.margin_right):
+		for dy in range(-def.margin_top, def.footprint_size.y + def.margin_bottom):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			if is_valid_cell(cell) and get_terrain(cell) == Terrain.GRASS:
-				if not _is_cell_covered_by_any_active_ecosystem(cell, radius):
+				if not _is_cell_covered_by_any_active_ecosystem(cell):
 					_terrain[cell] = Terrain.TILLED_DIRT
 					terrain_changed.emit(cell, Terrain.TILLED_DIRT)
 
 
-## Place a 2x2 ecosystem at anchor cell.
+## Place an NxM ecosystem at anchor cell.
 func place_ecosystem(anchor_cell: Vector2i, eco_type: EcosystemData.Type, is_loading: bool = false) -> EcosystemData.EcosystemInstance:
 	var error := validate_placement(anchor_cell, eco_type)
 	if error != "":
 		push_warning("Cannot place ecosystem: %s" % error)
 		return null
 
+	var def := EcosystemData.get_def(eco_type)
 	var instance := EcosystemData.create_instance(eco_type, anchor_cell)
 	_unique_ecosystems[anchor_cell] = instance
 
-	for dx in range(2):
-		for dy in range(2):
+	for dx in range(def.footprint_size.x):
+		for dy in range(def.footprint_size.y):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			_cell_ecosystem[cell] = instance
 
-	var neighbors := get_ecosystem_neighbors(anchor_cell, 4)
+	var neighbors := get_neighbors_for_instance(instance)
 	EcosystemData.apply_synergies(instance, neighbors)
 
 	for neighbor: EcosystemData.EcosystemInstance in neighbors:
-		var n_neighbors := get_ecosystem_neighbors(neighbor.cell, 4)
+		var n_neighbors := get_neighbors_for_instance(neighbor)
 		EcosystemData.apply_synergies(neighbor, n_neighbors)
 
 	if is_loading:
 		if EcosystemData.has_valid_relationship(instance, neighbors):
-			_transform_surrounding_dirt_to_grass(anchor_cell, GRASS_TRANSFORM_RADIUS)
+			_transform_surrounding_dirt_to_grass(anchor_cell, def)
 
 	ecosystem_placed.emit(anchor_cell, instance, is_loading)
 	return instance
@@ -208,17 +263,19 @@ func on_construction_completed(instance: EcosystemData.EcosystemInstance) -> voi
 	if instance == null or instance.is_broken:
 		return
 
-	var neighbors := get_ecosystem_neighbors(instance.cell, 4)
+	var neighbors := get_neighbors_for_instance(instance)
+	var inst_def := EcosystemData.get_def(instance.type)
 
 	# 1. Check if newly placed ecosystem satisfies relationship rules
 	if EcosystemData.has_valid_relationship(instance, neighbors):
-		_transform_surrounding_dirt_to_grass(instance.cell, GRASS_TRANSFORM_RADIUS)
+		_transform_surrounding_dirt_to_grass(instance.cell, inst_def)
 
 	# 2. Check if any neighboring ecosystems NOW satisfy relationship rules
 	for neighbor: EcosystemData.EcosystemInstance in neighbors:
-		var n_neighbors := get_ecosystem_neighbors(neighbor.cell, 4)
+		var n_neighbors := get_neighbors_for_instance(neighbor)
 		if EcosystemData.has_valid_relationship(neighbor, n_neighbors):
-			_transform_surrounding_dirt_to_grass(neighbor.cell, GRASS_TRANSFORM_RADIUS)
+			var n_def := EcosystemData.get_def(neighbor.type)
+			_transform_surrounding_dirt_to_grass(neighbor.cell, n_def)
 
 
 func restore_ecosystem_stats(inst: EcosystemData.EcosystemInstance) -> void:
@@ -229,25 +286,27 @@ func restore_ecosystem_stats(inst: EcosystemData.EcosystemInstance) -> void:
 	inst.days_broken = 0
 	if inst.node:
 		inst.node.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	var neighbors := get_ecosystem_neighbors(inst.cell, 4)
+	var neighbors := get_neighbors_for_instance(inst)
 	EcosystemData.apply_synergies(inst, neighbors)
 	if EcosystemData.has_valid_relationship(inst, neighbors):
-		_transform_surrounding_dirt_to_grass(inst.cell, GRASS_TRANSFORM_RADIUS)
+		var def := EcosystemData.get_def(inst.type)
+		_transform_surrounding_dirt_to_grass(inst.cell, def)
 
 
 func remove_ecosystem(anchor_cell: Vector2i) -> void:
 	if not _unique_ecosystems.has(anchor_cell):
 		return
+	var eco: EcosystemData.EcosystemInstance = _unique_ecosystems[anchor_cell]
+	var def := EcosystemData.get_def(eco.type)
 	_unique_ecosystems.erase(anchor_cell)
 
-	for dx in range(2):
-		for dy in range(2):
+	for dx in range(def.footprint_size.x):
+		for dy in range(def.footprint_size.y):
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			_cell_ecosystem.erase(cell)
 
-	_revert_surrounding_grass_to_dirt(anchor_cell, GRASS_TRANSFORM_RADIUS)
+	_revert_surrounding_grass_to_dirt(anchor_cell, def)
 	ecosystem_removed.emit(anchor_cell)
-
 
 
 func clear_all() -> void:
@@ -271,10 +330,23 @@ func _on_day_passed(_day_number: int) -> void:
 			eco.biodiversity = max0(eco.biodiversity - 1)
 			if eco.biodiversity <= 0 or eco.oxygen <= 0 or eco.water <= 0:
 				eco.is_broken = true
+				eco.is_occupied_by_human = false
 				eco.days_broken = 0
-				# Visual tint for broken ecosystem
+				eco.oxygen = 0
+				eco.water = 0
+				eco.biodiversity = 0
+
+				# Red visual tint for broken ecosystem
 				if eco.node:
-					eco.node.modulate = Color(0.8, 0.3, 0.3, 0.7)
+					eco.node.modulate = Color(0.9, 0.2, 0.2, 0.7)
+
+				# Remove any human event targeting this ecosystem
+				_cleanup_human_event_for_ecosystem(eco)
+
+				# Revert grass if no valid relationship active
+				var def := EcosystemData.get_def(eco.type)
+				_revert_surrounding_grass_to_dirt(anchor, def)
+
 				ecosystem_broken.emit(anchor)
 
 	for anchor in to_remove:
@@ -283,6 +355,16 @@ func _on_day_passed(_day_number: int) -> void:
 	# Distribute daily Life Force
 	var daily_lf := calculate_daily_lf_generation()
 	LifeForceManager.add(daily_lf)
+
+
+func _cleanup_human_event_for_ecosystem(eco: EcosystemData.EcosystemInstance) -> void:
+	var tree := Engine.get_main_loop()
+	if tree and tree is SceneTree:
+		var root := (tree as SceneTree).root
+		var human_nodes := root.find_children("*", "Node2D", true, false)
+		for node in human_nodes:
+			if "target_ecosystem" in node and node.get("target_ecosystem") == eco:
+				node.queue_free()
 
 
 ## Get accumulated forest stats from all active non-broken ecosystems.
@@ -347,11 +429,15 @@ func world_to_cell(world_pos: Vector2) -> Vector2i:
 	return Vector2i(cx, cy)
 
 
-func cell_to_world_2x2(cell: Vector2i) -> Vector2:
+func cell_to_world_footprint(cell: Vector2i, footprint: Vector2i) -> Vector2:
 	return Vector2(
-		float(cell.x * CELL_SIZE) + float(CELL_SIZE),
-		float(cell.y * CELL_SIZE) + float(CELL_SIZE)
+		(float(cell.x) + float(footprint.x) / 2.0) * CELL_SIZE,
+		(float(cell.y) + float(footprint.y) / 2.0) * CELL_SIZE
 	)
+
+
+func cell_to_world_2x2(cell: Vector2i) -> Vector2:
+	return cell_to_world_footprint(cell, Vector2i(2, 2))
 
 
 func cell_to_world(cell: Vector2i) -> Vector2:

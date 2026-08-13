@@ -1,6 +1,6 @@
 extends Node2D
 
-## Forest Grove ecosystem scene — composed of multiple tree sprites and shrubs.
+## Dense Forest ecosystem scene — high density mature tree canopy.
 
 var instance: EcosystemData.EcosystemInstance
 
@@ -31,23 +31,20 @@ func play_generation_effect() -> void:
 
 func _spawn_floating_text() -> void:
 	var label := Label.new()
-	label.text = "+%d" % (instance.lf_per_tick if instance else 1)
+	label.text = "+%d" % (instance.lf_per_tick if instance else 5)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
-	# Settings for label style (green, outline, outline color)
 	var settings := LabelSettings.new()
-	settings.font_size = 18
-	settings.font_color = Color(0.2, 0.9, 0.3)
+	settings.font_size = 20
+	settings.font_color = Color(0.1, 1.0, 0.4)
 	settings.outline_color = Color(0.0, 0.1, 0.0, 0.8)
-	settings.outline_size = 4
+	settings.outline_size = 5
 	label.label_settings = settings
 	
-	# Position above center of the node
-	label.position = Vector2(-20, -50)
+	label.position = Vector2(-20, -60)
 	add_child(label)
 	
-	# Tween the label floating up and fading out
 	var label_tween := create_tween().set_parallel(true)
-	label_tween.tween_property(label, "position:y", label.position.y - 60.0, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	label_tween.tween_property(label, "position:y", label.position.y - 65.0, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	label_tween.tween_property(label, "modulate:a", 0.0, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	label_tween.chain().tween_callback(label.queue_free)

@@ -108,6 +108,8 @@ func _finish_building() -> void:
 			scene_path = "res://scenes/ecosystems/pond.tscn"
 		EcosystemData.Type.WILDFLOWERS:
 			scene_path = "res://scenes/ecosystems/wildflowers.tscn"
+		EcosystemData.Type.DENSE_FOREST:
+			scene_path = "res://scenes/ecosystems/dense_forest.tscn"
 
 	if scene_path != "" and ResourceLoader.exists(scene_path):
 		var eco_scene: PackedScene = load(scene_path)

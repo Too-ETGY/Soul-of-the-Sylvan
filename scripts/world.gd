@@ -90,7 +90,7 @@ func _on_terrain_changed(_cell: Vector2i, _new_terrain: GridManager.Terrain) -> 
 
 
 func _on_ecosystem_placed(cell: Vector2i, instance: EcosystemData.EcosystemInstance, is_loading: bool = false) -> void:
-	var pos := GridManager.cell_to_world_2x2(cell)
+	var pos := GridManager.cell_to_world_footprint(cell, instance.footprint_size)
 
 	if is_loading:
 		# Direct instant spawn for loaded game progress
@@ -102,6 +102,8 @@ func _on_ecosystem_placed(cell: Vector2i, instance: EcosystemData.EcosystemInsta
 				scene_path = "res://scenes/ecosystems/pond.tscn"
 			EcosystemData.Type.WILDFLOWERS:
 				scene_path = "res://scenes/ecosystems/wildflowers.tscn"
+			EcosystemData.Type.DENSE_FOREST:
+				scene_path = "res://scenes/ecosystems/dense_forest.tscn"
 
 		if scene_path != "" and ResourceLoader.exists(scene_path):
 			var eco_scene: PackedScene = load(scene_path)
@@ -121,8 +123,10 @@ func _on_ecosystem_placed(cell: Vector2i, instance: EcosystemData.EcosystemInsta
 
 
 func _on_ecosystem_removed(cell: Vector2i) -> void:
-	var world_pos := GridManager.cell_to_world_2x2(cell)
 	for child in ecosystem_container.get_children():
-		if child.position.distance_to(world_pos) < 1.0:
+		if "instance" in child and child.instance == GridManager.get_ecosystem_at(cell):
+			child.queue_free()
+			break
+		elif child.position.distance_to(GridManager.cell_to_world(cell)) < 64.0:
 			child.queue_free()
 			break

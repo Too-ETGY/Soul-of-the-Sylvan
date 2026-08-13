@@ -35,7 +35,10 @@ func save_game() -> void:
 		save_data["ecosystems"].append({
 			"cell_x": anchor.x,
 			"cell_y": anchor.y,
-			"type": eco.type
+			"type": eco.type,
+			"is_broken": eco.is_broken,
+			"days_broken": eco.days_broken,
+			"is_occupied_by_human": eco.is_occupied_by_human
 		})
 
 	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
@@ -64,6 +67,8 @@ func load_game() -> bool:
 
 	var save_data: Dictionary = json.get_data()
 
+	var main := get_tree().root.find_child("Main", true, false)
+
 	# Restore Life Force
 	if save_data.has("life_force"):
 		LifeForceManager._life_force = int(save_data["life_force"])
@@ -80,7 +85,27 @@ func load_game() -> bool:
 		for eco_data in save_data["ecosystems"]:
 			var cell := Vector2i(int(eco_data["cell_x"]), int(eco_data["cell_y"]))
 			var eco_type: EcosystemData.Type = int(eco_data["type"]) as EcosystemData.Type
-			GridManager.place_ecosystem(cell, eco_type, true)
+			var is_broken := bool(eco_data.get("is_broken", false))
+			var days_broken := int(eco_data.get("days_broken", 0))
+			var is_occupied_by_human := bool(eco_data.get("is_occupied_by_human", false))
+
+			var inst := GridManager.place_ecosystem(cell, eco_type, true)
+			if inst:
+				inst.is_broken = is_broken
+				inst.days_broken = days_broken
+				inst.is_occupied_by_human = is_occupied_by_human
+
+				if is_broken:
+					# Instantly clear stats to 0
+					inst.oxygen = 0
+					inst.water = 0
+					inst.biodiversity = 0
+					if inst.node:
+						inst.node.modulate = Color(0.9, 0.2, 0.2, 0.7)
+
+				if is_occupied_by_human:
+					if main and main.has_method("spawn_human_event_on"):
+						main.call_deferred("spawn_human_event_on", inst)
 
 	# Restore Sacred Tree %
 	var tree := get_tree().root.find_child("SacredTree", true, false)
@@ -90,7 +115,6 @@ func load_game() -> bool:
 		tree.restoration_changed.emit(tree._restoration_percent, tree.get_spirit_level())
 
 	# Restore Human Awareness
-	var main := get_tree().root.find_child("Main", true, false)
 	if main and "human_awareness" in main and save_data.has("human_awareness"):
 		main.human_awareness = float(save_data["human_awareness"])
 
@@ -108,7 +132,6 @@ func reset_progress() -> void:
 
 	DayCycle._day_number = 1
 	DayCycle._timer = 0.0
-	DayCycle.day_passed.emit(1)
 
 	GridManager.clear_all()
 	progress_reset.emit()
