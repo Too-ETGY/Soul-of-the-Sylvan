@@ -3,16 +3,15 @@ extends Node2D
 ## World rendering — draws flat tilled dirt ground and transforms tiles to grass.
 ##
 ## TILESET CONFIGURATION:
-## Change these texture paths if you want to swap with different tile assets!
 const TILLED_DIRT_TEXTURE_PATH: String = "res://Asset/Tilesets/Tilled_Dirt_block.png"
-const GRASS_TEXTURE_PATH: String = "res://Asset/Tilesets/Grass_block.png"
+const FOREST_TERRAIN_TEXTURE_PATH: String = "res://Asset/Pixel Lands Forest Demo/forest_demo_terrain.png"
 
 # Color fallbacks if textures are not loaded
 var _dirt_color: Color = Color(0.55, 0.42, 0.28)
 var _grass_color: Color = Color(0.36, 0.62, 0.24)
 
 var _dirt_texture: Texture2D
-var _grass_texture: Texture2D
+var _terrain_texture: Texture2D
 
 @onready var ecosystem_container: Node2D = $EcosystemContainer
 
@@ -21,8 +20,8 @@ func _ready() -> void:
 	# Load tileset textures if available
 	if ResourceLoader.exists(TILLED_DIRT_TEXTURE_PATH):
 		_dirt_texture = load(TILLED_DIRT_TEXTURE_PATH)
-	if ResourceLoader.exists(GRASS_TEXTURE_PATH):
-		_grass_texture = load(GRASS_TEXTURE_PATH)
+	if ResourceLoader.exists(FOREST_TERRAIN_TEXTURE_PATH):
+		_terrain_texture = load(FOREST_TERRAIN_TEXTURE_PATH)
 
 	# Connect signals
 	GridManager.ecosystem_placed.connect(_on_ecosystem_placed)
@@ -46,6 +45,15 @@ func _draw() -> void:
 
 	var dark_overlay := Color(0.0, 0.0, 0.0, 0.45)
 
+	# Calculate source region for grass if terrain texture is loaded (16x16 frames)
+	var src_rect_grass := Rect2()
+	if _terrain_texture:
+		var tex_w := _terrain_texture.get_width()
+		var tex_h := _terrain_texture.get_height()
+		var frame_w := tex_w / 16.0
+		var frame_h := tex_h / 16.0
+		src_rect_grass = Rect2(0.0, 0.0, frame_w, frame_h)
+
 	for x in range(GridManager.GRID_WIDTH):
 		for y in range(GridManager.GRID_HEIGHT):
 			var cell := Vector2i(x, y)
@@ -53,8 +61,8 @@ func _draw() -> void:
 			var rect := Rect2(x * cell_size, y * cell_size, cell_size, cell_size)
 
 			if terrain == GridManager.Terrain.GRASS:
-				if _grass_texture:
-					draw_texture_rect(_grass_texture, rect, false)
+				if _terrain_texture:
+					draw_texture_rect_region(_terrain_texture, rect, src_rect_grass)
 				else:
 					draw_rect(rect, _grass_color)
 			else:
@@ -98,6 +106,7 @@ func _on_ecosystem_placed(cell: Vector2i, instance: EcosystemData.EcosystemInsta
 		if scene_path != "" and ResourceLoader.exists(scene_path):
 			var eco_scene: PackedScene = load(scene_path)
 			var eco_node: Node2D = eco_scene.instantiate()
+			eco_node.instance = instance
 			eco_node.position = pos
 			ecosystem_container.add_child(eco_node)
 			instance.node = eco_node

@@ -45,6 +45,7 @@ func _finish_building() -> void:
 	if scene_path != "" and ResourceLoader.exists(scene_path):
 		var eco_scene: PackedScene = load(scene_path)
 		var eco_node: Node2D = eco_scene.instantiate()
+		eco_node.instance = _instance
 		eco_node.position = position
 		get_parent().add_child(eco_node)
 		_instance.node = eco_node
