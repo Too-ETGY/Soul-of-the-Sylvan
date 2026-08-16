@@ -17,9 +17,10 @@ signal restoration_changed(percent: float, spirit_level: int)
 func _ready() -> void:
 	# Position at the center of the world
 	position = GridManager.cell_to_world(GridManager.SACRED_TREE_CELL)
+	z_index = 10
 
 	# Load texture
-	texture = load("res://Asset/tree_assets/Mega_tree1.png")
+	texture = load("res://Asset/tree_assets/sacred_tree.png")
 
 	if texture:
 		var tex_size := texture.get_size()
@@ -39,9 +40,11 @@ func get_spirit_level() -> int:
 
 
 ## Calculate Life Force cost for the next +1% restoration increment.
+## Starts at 6 (5 + 1) for 10%->11%, then +2 for 11%->12%, +3 for 12%->13%, etc.
 func get_next_restore_cost() -> int:
-	var step_offset := int(maxf(_restoration_percent - START_PERCENT, 0.0))
-	return BASE_RESTORE_COST + step_offset
+	var step := int(maxf(_restoration_percent - START_PERCENT, 0.0))
+	var additional := int(float((step + 1) * (step + 2)) / 2.0)
+	return BASE_RESTORE_COST + additional - 1
 
 
 ## Try to restore the Sacred Tree by +1% spending Life Force.
@@ -64,10 +67,8 @@ func restore(amount_percent: float = 1.0) -> bool:
 func _update_spirit_level() -> void:
 	var old_level := _spirit_level
 	if _restoration_percent >= 70.0:
-		_spirit_level = 3
-	elif _restoration_percent >= 40.0:
 		_spirit_level = 2
-	elif _restoration_percent >= 15.0:
+	elif _restoration_percent >= 40.0:
 		_spirit_level = 1
 	else:
 		_spirit_level = 0
@@ -77,9 +78,4 @@ func _update_spirit_level() -> void:
 
 
 func _update_visual() -> void:
-	var t := _restoration_percent / 100.0
-	var brightness := lerpf(0.3, 1.0, t)
-
-	var color := Color(brightness, brightness, brightness)
-	color.g = lerpf(brightness, brightness * 1.15, t)
-	modulate = color
+	modulate = Color(1.0, 1.0, 1.0, 1.0)

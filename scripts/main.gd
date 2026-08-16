@@ -30,13 +30,24 @@ func _ready() -> void:
 
 
 func _on_day_passed(day_number: int) -> void:
-	# Human Awareness Decay: reduces by 1% every 2 days
-	if day_number % 2 == 0:
-		human_awareness = maxf(human_awareness - 1.0, 0.0)
-		_update_awareness_ui()
+	# Human Awareness Decay:
+	# - Base (< 40% Sacred Tree): -1% every day
+	# - Level 1 (>= 40% Sacred Tree): -3% every day
+	# - Level 2 (>= 70% Sacred Tree): -5% every day
+	var tree_pct: float = sacred_tree.get_restoration_percent() if sacred_tree else 10.0
+	var decay_rate := 1.0
+	if tree_pct >= 70.0:
+		decay_rate = 5.0
+	elif tree_pct >= 40.0:
+		decay_rate = 3.0
+	else:
+		decay_rate = 1.0
 
-	# Gate: Humans only spawn if Sacred Tree restoration is >= 15%
-	if sacred_tree and sacred_tree.get_restoration_percent() >= 15.0:
+	human_awareness = maxf(human_awareness - decay_rate, 0.0)
+	_update_awareness_ui()
+
+	# Gate: Humans only spawn starting after Day 5
+	if day_number >= 5:
 		_check_and_spawn_human_event()
 
 	SaveManager.save_game()
@@ -56,9 +67,9 @@ func _check_and_spawn_human_event() -> void:
 		return  # All ecosystems already occupied or none built
 
 	# Determine maximum allowed spawns in one day:
-	# If awareness < 40%, up to 2 humans can spawn at a time (if eligible ecosystems exist).
+	# If awareness <= 50%, up to 2 humans can spawn at a time (if eligible ecosystems exist).
 	var max_spawns: int = 1
-	if human_awareness < 40.0:
+	if human_awareness <= 50.0:
 		max_spawns = 2
 
 	var spawn_chance: float = (100.0 - human_awareness) / 100.0

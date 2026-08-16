@@ -79,6 +79,13 @@ func load_game() -> bool:
 		DayCycle._day_number = int(save_data["day_number"])
 		DayCycle.day_passed.emit(DayCycle._day_number)
 
+	# Restore Sacred Tree %
+	var tree := get_tree().root.find_child("SacredTree", true, false)
+	if tree and tree.has_method("restore") and save_data.has("sacred_tree_restoration"):
+		tree._restoration_percent = float(save_data["sacred_tree_restoration"])
+		tree._update_visual()
+		tree.restoration_changed.emit(tree._restoration_percent, tree.get_spirit_level())
+
 	# Restore Ecosystems
 	GridManager.clear_all()
 	if save_data.has("ecosystems"):
@@ -106,13 +113,6 @@ func load_game() -> bool:
 				if is_occupied_by_human:
 					if main and main.has_method("spawn_human_event_on"):
 						main.call_deferred("spawn_human_event_on", inst)
-
-	# Restore Sacred Tree %
-	var tree := get_tree().root.find_child("SacredTree", true, false)
-	if tree and tree.has_method("restore") and save_data.has("sacred_tree_restoration"):
-		tree._restoration_percent = float(save_data["sacred_tree_restoration"])
-		tree._update_visual()
-		tree.restoration_changed.emit(tree._restoration_percent, tree.get_spirit_level())
 
 	# Restore Human Awareness
 	if main and "human_awareness" in main and save_data.has("human_awareness"):

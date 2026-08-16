@@ -79,7 +79,7 @@ static func _ensure_initialized() -> void:
 	grove.base_water = 3
 	grove.base_biodiversity = 5
 	grove.lf_per_tick = 2
-	grove.texture_path = "res://Asset/tree_assets/Curved_tree1.png"
+	grove.texture_path = "res://Asset/tree_assets/tree3.png"
 	grove.footprint_size = Vector2i(3, 2)
 	grove.margin_left = 1
 	grove.margin_right = 1
@@ -125,7 +125,7 @@ static func _ensure_initialized() -> void:
 	flowers.base_water = 2
 	flowers.base_biodiversity = 8
 	flowers.lf_per_tick = 1
-	flowers.texture_path = "res://Asset/tree_assets/Chanterelles1.png"
+	flowers.texture_path = "res://Asset/tree_assets/flower.png"
 	flowers.footprint_size = Vector2i(2, 2)
 	flowers.margin_left = 1
 	flowers.margin_right = 1
@@ -148,15 +148,15 @@ static func _ensure_initialized() -> void:
 	dense.base_water = 5
 	dense.base_biodiversity = 12
 	dense.lf_per_tick = 5
-	dense.texture_path = "res://Asset/tree_assets/Swirling tree1.png"
+	dense.texture_path = "res://Asset/tree_assets/tree.png"
 	dense.footprint_size = Vector2i(4, 4)
-	dense.margin_left = 1
-	dense.margin_right = 1
-	dense.margin_top = 1
-	dense.margin_bottom = 1
+	dense.margin_left = 3
+	dense.margin_right = 3
+	dense.margin_top = 3
+	dense.margin_bottom = 3
 	dense.unlock_tree_percent = 40.0
-	dense.description = "A mature, canopy-rich forest ecosystem generating massive Oxygen and Biodiversity. Unlocked at Sacred Tree Level 2 (40%)."
-	dense.placement_rules = "Requires Sacred Tree restoration >= 40%.\nRequires at least 2 Forest Groves nearby.\nRequires total forest Biodiversity >= 20.\nKeep at least 3 cells away from another Dense Forest."
+	dense.description = "A mature, canopy-rich forest ecosystem generating massive Oxygen and Biodiversity. Unlocked at Sacred Tree Level 1 (40%)."
+	dense.placement_rules = "Requires Sacred Tree restoration >= 40%.\nMust be placed on open forest land.\nKeep at least 3 cells away from another Dense Forest."
 	dense.relationships_info = "• Near Pond → +4 Biodiversity\n• Near Forest Grove → +3 Oxygen\n• Near Dense Forest → +3 Oxygen"
 	definitions[Type.DENSE_FOREST] = dense
 

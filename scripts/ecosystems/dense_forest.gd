@@ -3,8 +3,10 @@ extends Node2D
 ## Dense Forest ecosystem scene — high density mature tree canopy.
 
 var instance: EcosystemData.EcosystemInstance
+var _initial_scale: Vector2 = Vector2.ONE
 
 func _ready() -> void:
+	_initial_scale = scale
 	LifeForceManager.life_force_added.connect(_on_life_force_added)
 
 
@@ -14,10 +16,10 @@ func _on_life_force_added(_amount: int) -> void:
 
 
 func play_generation_effect() -> void:
-	# 1. Scale bounce effect
+	# 1. Scale bounce effect relative to initial scale
 	var tween_scale := create_tween()
-	tween_scale.tween_property(self, "scale", Vector2(1.15, 1.15), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween_scale.tween_property(self, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween_scale.tween_property(self, "scale", _initial_scale * 1.12, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween_scale.tween_property(self, "scale", _initial_scale, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 	# 2. Color glow flash
 	var tween_color := create_tween()

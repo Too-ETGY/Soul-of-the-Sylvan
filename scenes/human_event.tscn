@@ -1,18 +1,24 @@
 [gd_scene format=3 uid="uid://5sbdu6rywlq6"]
 
 [ext_resource type="Script" uid="uid://bje3xdf2dh3kl" path="res://scripts/human_event.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://tkca4s56wrjj" path="res://Asset/icon.svg" id="2"]
+[ext_resource type="Texture2D" path="res://Asset/Characters/human.png" id="2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
-size = Vector2(40, 40)
+size = Vector2(48, 48)
+
+[sub_resource type="LabelSettings" id="LabelSettings_2jj31"]
+font_size = 10
 
 [node name="HumanEvent" type="Node2D" unique_id=1904910015]
+z_index = 5
 script = ExtResource("1")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=670158027]
-modulate = Color(1, 0.4, 0.4, 1)
-scale = Vector2(0.3, 0.3)
+modulate = Color(1, 0.35, 0.35, 1)
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2")
+hframes = 3
+vframes = 3
 
 [node name="Area2D" type="Area2D" parent="." unique_id=703179807]
 
@@ -59,13 +65,13 @@ horizontal_alignment = 1
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 15.0
-offset_top = 45.0
-offset_right = -15.0
-offset_bottom = 90.0
+offset_top = 40.0
+offset_bottom = 97.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 12
-text = "-"
+text = "Illegal hunting is currently taking place in ecosystem. What would you do?
+(-1 biodiversity everyday)"
+label_settings = SubResource("LabelSettings_2jj31")
 horizontal_alignment = 1
 autowrap_mode = 2
 

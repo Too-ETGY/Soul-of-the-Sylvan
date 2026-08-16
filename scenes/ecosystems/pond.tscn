@@ -1,73 +1,42 @@
 [gd_scene format=3 uid="uid://bcx3tlw4ldl0w"]
 
 [ext_resource type="Script" uid="uid://vm11ohbl4wm7" path="res://scripts/ecosystems/pond.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://sc5kfmthpo5c" path="res://Asset/Pixel Lands Forest Demo/forest_demo_terrain.png" id="2_ssavh"]
+[ext_resource type="Texture2D" uid="uid://rpkclpq478ie" path="res://Asset/Tilesets/pond.png" id="2_ssavh"]
+[ext_resource type="Texture2D" uid="uid://dheqrxnh0vfo5" path="res://Asset/tree_assets/tree3.png" id="3_ibequ"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ibequ"]
+atlas = ExtResource("2_ssavh")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iy5tj"]
+atlas = ExtResource("2_ssavh")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qwc0f"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ibequ")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iy5tj")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
 
 [node name="Pond" type="Node2D" unique_id=515513777]
 position = Vector2(0, -7)
 script = ExtResource("1")
 
-[node name="PondSprites" type="Node2D" parent="." unique_id=135104755]
-scale = Vector2(2.5, 2.5)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=619036608]
+position = Vector2(-7.6293945e-06, 2.9999962)
+scale = Vector2(1.7395834, 1.7395834)
+sprite_frames = SubResource("SpriteFrames_qwc0f")
+frame_progress = 0.031830266
 
-[node name="Sprite2D5" type="Sprite2D" parent="PondSprites" unique_id=1456299107]
-position = Vector2(0, -16)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 22
-
-[node name="Sprite2D" type="Sprite2D" parent="PondSprites" unique_id=370839743]
-position = Vector2(-16, -16)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 21
-
-[node name="Sprite2D2" type="Sprite2D" parent="PondSprites" unique_id=988759866]
-position = Vector2(16, -16)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 23
-
-[node name="Sprite2D4" type="Sprite2D" parent="PondSprites" unique_id=101945684]
-position = Vector2(16, 16)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 55
-
-[node name="Sprite2D3" type="Sprite2D" parent="PondSprites" unique_id=1136435693]
-position = Vector2(16, 0)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 39
-
-[node name="Sprite2D6" type="Sprite2D" parent="PondSprites" unique_id=327671645]
-position = Vector2(0, 16)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 54
-
-[node name="Sprite2D9" type="Sprite2D" parent="PondSprites" unique_id=1464140804]
-position = Vector2(-16, 0)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 37
-
-[node name="Sprite2D7" type="Sprite2D" parent="PondSprites" unique_id=925721958]
-position = Vector2(-16, 16)
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 53
-
-[node name="Sprite2D8" type="Sprite2D" parent="PondSprites" unique_id=1796135156]
-texture = ExtResource("2_ssavh")
-hframes = 16
-vframes = 16
-frame = 38
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=953027281]
+position = Vector2(-46.999996, -55.999996)
+scale = Vector2(1.796875, 1.921875)
+texture = ExtResource("3_ibequ")

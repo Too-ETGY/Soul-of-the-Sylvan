@@ -3,25 +3,37 @@ extends Node2D
 ## World rendering — draws flat tilled dirt ground and transforms tiles to grass.
 ##
 ## TILESET CONFIGURATION:
-const TILLED_DIRT_TEXTURE_PATH: String = "res://Asset/Tilesets/Tilled_Dirt_block.png"
-const FOREST_TERRAIN_TEXTURE_PATH: String = "res://Asset/Pixel Lands Forest Demo/forest_demo_terrain.png"
+const DIRT_TEXTURE_PATH: String = "res://Asset/Tilesets/dirt.png"
+const GRASS_TEXTURE_PATH: String = "res://Asset/Tilesets/grass tile dark.png"
+const WATER_TEXTURE_PATH: String = "res://Asset/Tilesets/ground_water.png"
+const ASPHALT_TEXTURE_PATH: String = "res://Asset/Tilesets/ground_asphalt.png"
+const CITY_SCENE_PATH: String = "res://scenes/city.tscn"
 
 # Color fallbacks if textures are not loaded
-var _dirt_color: Color = Color(0.55, 0.42, 0.28)
-var _grass_color: Color = Color(0.36, 0.62, 0.24)
+var _dirt_color: Color = Color(0.38, 0.28, 0.18)
+var _grass_color: Color = Color(0.12, 0.45, 0.12)
+var _water_color: Color = Color(0.25, 0.48, 0.72)
+var _asphalt_color: Color = Color(0.7, 0.7, 0.7)
 
 var _dirt_texture: Texture2D
-var _terrain_texture: Texture2D
+var _grass_texture: Texture2D
+var _water_texture: Texture2D
+var _asphalt_texture: Texture2D
 
 @onready var ecosystem_container: Node2D = $EcosystemContainer
+@onready var sacred_tree: Sprite2D = $SacredTree
 
 
 func _ready() -> void:
 	# Load tileset textures if available
-	if ResourceLoader.exists(TILLED_DIRT_TEXTURE_PATH):
-		_dirt_texture = load(TILLED_DIRT_TEXTURE_PATH)
-	if ResourceLoader.exists(FOREST_TERRAIN_TEXTURE_PATH):
-		_terrain_texture = load(FOREST_TERRAIN_TEXTURE_PATH)
+	if ResourceLoader.exists(DIRT_TEXTURE_PATH):
+		_dirt_texture = load(DIRT_TEXTURE_PATH)
+	if ResourceLoader.exists(GRASS_TEXTURE_PATH):
+		_grass_texture = load(GRASS_TEXTURE_PATH)
+	if ResourceLoader.exists(WATER_TEXTURE_PATH):
+		_water_texture = load(WATER_TEXTURE_PATH)
+	if ResourceLoader.exists(ASPHALT_TEXTURE_PATH):
+		_asphalt_texture = load(ASPHALT_TEXTURE_PATH)
 
 	# Connect signals
 	GridManager.ecosystem_placed.connect(_on_ecosystem_placed)
@@ -31,6 +43,19 @@ func _ready() -> void:
 	var tree := get_tree().root.find_child("SacredTree", true, false)
 	if tree and tree.has_signal("restoration_changed"):
 		tree.restoration_changed.connect(func(_p, _l): queue_redraw())
+
+	# Position Sacred Tree at the new Sacred Tree cell
+	if sacred_tree:
+		sacred_tree.position = GridManager.cell_to_world(GridManager.SACRED_TREE_CELL)
+
+	# Instantiate Human City if city scene exists
+	if ResourceLoader.exists(CITY_SCENE_PATH):
+		var city_packed: PackedScene = load(CITY_SCENE_PATH)
+		if city_packed:
+			var city_inst: Node2D = city_packed.instantiate()
+			city_inst.name = "HumanCity"
+			city_inst.position = GridManager.cell_to_world(GridManager.CITY_CELL)
+			add_child(city_inst)
 
 	queue_redraw()
 
@@ -45,38 +70,41 @@ func _draw() -> void:
 
 	var dark_overlay := Color(0.0, 0.0, 0.0, 0.45)
 
-	# Calculate source region for grass if terrain texture is loaded (16x16 frames)
-	var src_rect_grass := Rect2()
-	if _terrain_texture:
-		var tex_w := _terrain_texture.get_width()
-		var tex_h := _terrain_texture.get_height()
-		var frame_w := tex_w / 16.0
-		var frame_h := tex_h / 16.0
-		src_rect_grass = Rect2(0.0, 0.0, frame_w, frame_h)
-
 	for x in range(GridManager.GRID_WIDTH):
 		for y in range(GridManager.GRID_HEIGHT):
 			var cell := Vector2i(x, y)
 			var terrain := GridManager.get_terrain(cell)
 			var rect := Rect2(x * cell_size, y * cell_size, cell_size, cell_size)
 
-			if terrain == GridManager.Terrain.GRASS:
-				if _terrain_texture:
-					draw_texture_rect_region(_terrain_texture, rect, src_rect_grass)
+			if terrain == GridManager.Terrain.WATER:
+				if _water_texture:
+					draw_texture_rect(_water_texture, rect, false)
+				else:
+					draw_rect(rect, _water_color)
+			elif terrain == GridManager.Terrain.ASPHALT:
+				if _asphalt_texture:
+					draw_texture_rect(_asphalt_texture, rect, false)
+				else:
+					draw_rect(rect, _asphalt_color)
+			elif terrain == GridManager.Terrain.GRASS:
+				if _grass_texture:
+					draw_texture_rect(_grass_texture, rect, false)
 				else:
 					draw_rect(rect, _grass_color)
+				# Darken unplantable locked cells
+				if not GridManager.is_cell_in_allowed_region(cell, tree_restoration):
+					draw_rect(rect, dark_overlay)
 			else:
 				if _dirt_texture:
 					draw_texture_rect(_dirt_texture, rect, false)
 				else:
 					draw_rect(rect, _dirt_color)
-
-			# Darken unplantable locked cells
-			if not GridManager.is_cell_in_allowed_region(cell, tree_restoration):
-				draw_rect(rect, dark_overlay)
+				# Darken unplantable locked cells
+				if not GridManager.is_cell_in_allowed_region(cell, tree_restoration):
+					draw_rect(rect, dark_overlay)
 
 	# Subtle grid lines
-	var grid_color := Color(0.0, 0.0, 0.0, 0.06)
+	var grid_color := Color(0.0, 0.0, 0.0, 0.05)
 	for x in range(GridManager.GRID_WIDTH + 1):
 		var x_pos := float(x * cell_size)
 		draw_line(Vector2(x_pos, 0), Vector2(x_pos, GridManager.GRID_HEIGHT * cell_size), grid_color, 1.0)
@@ -124,9 +152,6 @@ func _on_ecosystem_placed(cell: Vector2i, instance: EcosystemData.EcosystemInsta
 
 func _on_ecosystem_removed(cell: Vector2i) -> void:
 	for child in ecosystem_container.get_children():
-		if "instance" in child and child.instance == GridManager.get_ecosystem_at(cell):
+		if "instance" in child and child.instance and child.instance.cell == cell:
 			child.queue_free()
-			break
-		elif child.position.distance_to(GridManager.cell_to_world(cell)) < 64.0:
-			child.queue_free()
-			break
+			return

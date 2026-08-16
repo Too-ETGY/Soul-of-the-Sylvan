@@ -63,7 +63,7 @@ func _update_preview_texture() -> void:
 		preview_sprite.texture = _preview_textures.get(_selected_type)
 		if preview_sprite.texture:
 			var tex_size := preview_sprite.texture.get_size()
-			var target_size := float(GridManager.CELL_SIZE) * 1.8
+			var target_size := float(GridManager.CELL_SIZE) * (3.2 if _selected_type == EcosystemData.Type.DENSE_FOREST else 1.8)
 			var scale_factor := target_size / maxf(tex_size.x, tex_size.y)
 			preview_sprite.scale = Vector2(scale_factor, scale_factor)
 
@@ -114,8 +114,13 @@ func _process(_delta: float) -> void:
 
 
 func _validate_current_cell() -> void:
+	var def := EcosystemData.get_def(_selected_type)
+	var main := get_tree().root.find_child("Main", true, false)
+
 	if not GridManager.is_valid_cell(_hovered_cell):
 		_is_valid_placement = false
+		if main and "hud" in main and main.hud:
+			main.hud.tooltip_label.text = "⚠️ Out of bounds"
 		return
 
 	var tree_restoration := 10.0
@@ -126,14 +131,19 @@ func _validate_current_cell() -> void:
 	var error := GridManager.validate_placement(_hovered_cell, _selected_type, tree_restoration)
 	if error != "":
 		_is_valid_placement = false
+		if main and "hud" in main and main.hud:
+			main.hud.tooltip_label.text = "⚠️ %s" % error
 		return
 
-	var def := EcosystemData.get_def(_selected_type)
 	if not LifeForceManager.can_afford(def.life_force_cost):
 		_is_valid_placement = false
+		if main and "hud" in main and main.hud:
+			main.hud.tooltip_label.text = "⚠️ Need %d LF (have %d LF)" % [def.life_force_cost, LifeForceManager.get_life_force()]
 		return
 
 	_is_valid_placement = true
+	if main and "hud" in main and main.hud:
+		main.hud.tooltip_label.text = "Click to plant %s (%d LF)" % [def.display_name, def.life_force_cost]
 
 
 func _confirm_placement() -> void:
@@ -144,7 +154,7 @@ func _confirm_placement() -> void:
 
 	var instance := GridManager.place_ecosystem(_hovered_cell, _selected_type)
 	if instance == null:
-		LifeForceManager.add(def.life_force_cost)
+		LifeForceManager.refund(def.life_force_cost)
 		return
 
 	placement_completed.emit(_hovered_cell, _selected_type)

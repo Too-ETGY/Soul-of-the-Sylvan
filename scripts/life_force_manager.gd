@@ -32,5 +32,10 @@ func add(amount: int) -> void:
 	life_force_added.emit(amount)
 
 
+func refund(amount: int) -> void:
+	_life_force += amount
+	life_force_changed.emit(_life_force)
+
+
 func can_afford(amount: int) -> bool:
 	return _life_force >= amount

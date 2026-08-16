@@ -157,7 +157,7 @@ func _check_hover_inspector() -> void:
 		inspector_stats.text = "O₂: %d  |  💧: %d  |  🌿: %d" % [eco.oxygen, eco.water, eco.biodiversity]
 
 		if eco.is_broken:
-			inspector_status.text = "Status: ⚠️ BROKEN (%d/3 days to decay)" % eco.days_broken
+			inspector_status.text = "Status: ⚠️ BROKEN (%d/5 days to decay)" % eco.days_broken
 			inspector_status.modulate = Color(1.0, 0.3, 0.3, 1.0)
 		elif eco.is_occupied_by_human:
 			inspector_status.text = "Status: 🚨 Occupied by Human (-1 Bio/day)"

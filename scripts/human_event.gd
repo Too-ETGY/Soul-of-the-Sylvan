@@ -29,6 +29,22 @@ func _ready() -> void:
 	enlighten_btn.pressed.connect(_on_enlighten_pressed)
 	ignore_btn.pressed.connect(_on_ignore_pressed)
 
+	# Pick random character variant row (0, 1, or 2)
+	var row := randi() % 3
+	sprite.frame = row * 3
+
+	# Danger warning red tint & pulse
+	sprite.modulate = Color(1.0, 0.35, 0.35, 1.0)
+	var pulse_tween := create_tween().set_loops()
+	pulse_tween.tween_property(sprite, "modulate", Color(1.3, 0.2, 0.2, 1.0), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	pulse_tween.tween_property(sprite, "modulate", Color(1.0, 0.45, 0.45, 1.0), 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	# Idle chopping/walking animation loop
+	var anim_tween := create_tween().set_loops()
+	anim_tween.tween_callback(func(): sprite.frame = row * 3 + 1).set_delay(0.35)
+	anim_tween.tween_callback(func(): sprite.frame = row * 3 + 2).set_delay(0.35)
+	anim_tween.tween_callback(func(): sprite.frame = row * 3).set_delay(0.35)
+
 
 func _on_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

@@ -1,36 +1,40 @@
 [gd_scene format=3 uid="uid://32wdo3ea8r45"]
 
 [ext_resource type="Script" uid="uid://bh8fe4xjvdym8" path="res://scripts/ecosystems/forest_grove.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://bjgkrrohfvx2t" path="res://Asset/tree_assets/Curved_tree1.png" id="2"]
-[ext_resource type="Texture2D" uid="uid://wkpuf4lq06aj" path="res://Asset/tree_assets/Curved_tree2.png" id="3_vurm7"]
-[ext_resource type="Texture2D" uid="uid://dx3biujx4udhe" path="res://Asset/tree_assets/Swirling tree1.png" id="4_1656f"]
-[ext_resource type="Texture2D" uid="uid://b6cdoqgeegmsk" path="res://Asset/tree_assets/Willow1.png" id="5_3lf2e"]
-[ext_resource type="Texture2D" uid="uid://cpeele8tlpx4a" path="res://Asset/tree_assets/Swirling tree3.png" id="6_nqkty"]
+[ext_resource type="Texture2D" uid="uid://dheqrxnh0vfo5" path="res://Asset/tree_assets/tree3.png" id="2_yje3m"]
+[ext_resource type="Texture2D" uid="uid://id8h2pshm8mb" path="res://Asset/tree_assets/tree.png" id="3_qsmha"]
+[ext_resource type="Texture2D" uid="uid://df0vsqsw4wptw" path="res://Asset/tree_assets/bush.png" id="4_vurm7"]
 
 [node name="ForestGrove" type="Node2D" unique_id=907534278]
+scale = Vector2(2.8714056, 2.8714056)
 script = ExtResource("1")
 
-[node name="MainTree" type="Sprite2D" parent="." unique_id=757143766]
-position = Vector2(-4.9999995, -27)
-scale = Vector2(0.87656254, 1.3140625)
-texture = ExtResource("2")
-offset = Vector2(-15, -10)
+[node name="tree" type="Sprite2D" parent="." unique_id=1193733393]
+position = Vector2(-34, 3)
+texture = ExtResource("2_yje3m")
 
-[node name="CurvedTree2" type="Sprite2D" parent="." unique_id=963309027]
-position = Vector2(29, -40)
-scale = Vector2(0.85156244, 0.9726563)
-texture = ExtResource("3_vurm7")
+[node name="tree3" type="Sprite2D" parent="." unique_id=1835723047]
+position = Vector2(16, 21)
+scale = Vector2(1.015625, 1.015625)
+texture = ExtResource("2_yje3m")
 
-[node name="SwirlingTree1" type="Sprite2D" parent="." unique_id=28810880]
-position = Vector2(-64, -7)
-scale = Vector2(0.625, 0.6328125)
-texture = ExtResource("4_1656f")
+[node name="tree2" type="Sprite2D" parent="." unique_id=1679894092]
+position = Vector2(7, -20)
+scale = Vector2(0.65625, 0.65625)
+texture = ExtResource("3_qsmha")
 
-[node name="Willow1" type="Sprite2D" parent="." unique_id=753232132]
-position = Vector2(1, 12.000023)
-scale = Vector2(1.390625, 1.34375)
-texture = ExtResource("5_3lf2e")
+[node name="bush" type="Sprite2D" parent="." unique_id=1750892765]
+position = Vector2(-36, 36.000004)
+scale = Vector2(0.4374999, 0.28125003)
+texture = ExtResource("4_vurm7")
 
-[node name="SwirlingTree3" type="Sprite2D" parent="." unique_id=117767067]
-position = Vector2(-81, 10)
-texture = ExtResource("6_nqkty")
+[node name="bush3" type="Sprite2D" parent="." unique_id=829148852]
+position = Vector2(-21, 29)
+scale = Vector2(0.4374999, 0.28125003)
+texture = ExtResource("4_vurm7")
+
+[node name="bush2" type="Sprite2D" parent="." unique_id=1611846281]
+position = Vector2(32, -13)
+rotation = 4.692065
+scale = Vector2(0.4374999, 0.28125003)
+texture = ExtResource("4_vurm7")

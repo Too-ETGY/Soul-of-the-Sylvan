@@ -4,15 +4,19 @@ extends Node
 ## human occupation degradation, broken 3-day decay, and daily LF formula calculation.
 
 const GRID_WIDTH: int = 48
-const GRID_HEIGHT: int = 48
+const GRID_HEIGHT: int = 64
 const CELL_SIZE: int = 64  # pixels per cell
-const SACRED_TREE_CELL: Vector2i = Vector2i(24, 24)
+const SACRED_TREE_CELL: Vector2i = Vector2i(24, 46)
+const CITY_CELL: Vector2i = Vector2i(24, 16)
+const CITY_RADIUS: float = 9.0
 
-enum Terrain { TILLED_DIRT, GRASS }
+enum Terrain { TILLED_DIRT, GRASS, WATER, ASPHALT }
 
 const TERRAIN_NAMES: Dictionary = {
 	Terrain.TILLED_DIRT: "tilled_dirt",
 	Terrain.GRASS: "grass",
+	Terrain.WATER: "water",
+	Terrain.ASPHALT: "asphalt",
 }
 
 ## Grass transform area radius in cells around ecosystem anchor (default: 3).
@@ -37,11 +41,42 @@ func _ready() -> void:
 	DayCycle.day_passed.connect(_on_day_passed)
 
 
+func _is_land_cell(cell: Vector2i) -> bool:
+	var cx := float(GRID_WIDTH) / 2.0
+	var dx := float(cell.x) - cx
+	var y := float(cell.y)
+
+	# Top border water
+	if y < 4.0:
+		return false
+
+	# Bottom of island has no water - solid land all the way to the bottom edge
+	if y >= 36.0:
+		return true
+
+	# From y=4 to y=36, land expands smoothly downwards
+	var progress: float = (y - 4.0) / 32.0
+	var max_half_width := 8.0 + 16.0 * sqrt(progress)
+
+	if dx > 0.0:
+		var right_limit := max_half_width * (0.88 + 0.12 * progress)
+		return dx <= right_limit
+	else:
+		return absf(dx) <= max_half_width
+
+
 func _init_flat_dirt_map() -> void:
 	_terrain.clear()
 	for x in range(GRID_WIDTH):
 		for y in range(GRID_HEIGHT):
-			_terrain[Vector2i(x, y)] = Terrain.TILLED_DIRT
+			var cell := Vector2i(x, y)
+			if _is_land_cell(cell):
+				if Vector2(cell).distance_to(Vector2(CITY_CELL)) <= CITY_RADIUS:
+					_terrain[cell] = Terrain.ASPHALT
+				else:
+					_terrain[cell] = Terrain.TILLED_DIRT
+			else:
+				_terrain[cell] = Terrain.WATER
 
 
 func is_valid_cell(cell: Vector2i) -> bool:
@@ -115,20 +150,28 @@ func get_neighbors_for_type_at(type: EcosystemData.Type, cell: Vector2i) -> Arra
 	return get_ecosystems_in_region(min_cell, max_cell, cell)
 
 
+## Check if a cell is part of the 3x3 Sacred Tree footprint.
+func is_cell_sacred_tree(cell: Vector2i) -> bool:
+	return absi(cell.x - SACRED_TREE_CELL.x) <= 1 and absi(cell.y - SACRED_TREE_CELL.y) <= 1
+
+
 ## Get allowed plantable cell radius based on Sacred Tree restoration percent.
-## < 40%: compact radius (6 cells around Sacred Tree center)
-## 40%..69%: medium radius (12 cells)
-## >= 70%: full map access
+## < 40%: Level 0 (14 cells around Sacred Tree center)
+## 40%..69%: Level 1 expansion (24 cells - covers full Sylvandrum Forest)
+## >= 70%: Level 2 full access (999 cells)
 func get_allowed_radius(restoration_percent: float) -> float:
 	if restoration_percent >= 70.0:
-		return 999.0  # Full map
+		return 999.0  # Full forest up to city
 	elif restoration_percent >= 40.0:
-		return 12.0
+		return 24.0   # Level 1 expansion
 	else:
-		return 6.0
+		return 14.0   # Initial plantable forest area around Sacred Tree
 
 
 func is_cell_in_allowed_region(cell: Vector2i, restoration_percent: float) -> bool:
+	var terrain := get_terrain(cell)
+	if terrain == Terrain.WATER or terrain == Terrain.ASPHALT:
+		return false
 	var allowed_r := get_allowed_radius(restoration_percent)
 	if allowed_r >= 900.0:
 		return true
@@ -152,6 +195,12 @@ func validate_placement(anchor_cell: Vector2i, eco_type: EcosystemData.Type, tre
 			var cell := Vector2i(anchor_cell.x + dx, anchor_cell.y + dy)
 			if not is_valid_cell(cell):
 				return "Out of bounds"
+			if is_cell_sacred_tree(cell):
+				return "Cannot place on Sacred Tree"
+			if get_terrain(cell) == Terrain.WATER:
+				return "Cannot place on water"
+			if get_terrain(cell) == Terrain.ASPHALT or Vector2(cell).distance_to(Vector2(CITY_CELL)) <= CITY_RADIUS:
+				return "Cannot place inside Human City"
 			if not is_cell_in_allowed_region(cell, tree_restoration):
 				return "Area locked (Restore Sacred Tree to expand)"
 			if is_cell_occupied(cell):
@@ -164,21 +213,6 @@ func validate_placement(anchor_cell: Vector2i, eco_type: EcosystemData.Type, tre
 			var distance := Vector2(anchor_cell).distance_to(Vector2(eco.cell))
 			if distance < float(min_dist + 1):
 				return "Too close to another %s" % def.display_name
-
-	if eco_type == EcosystemData.Type.DENSE_FOREST:
-		# Check multiple Forest Groves nearby
-		var neighbors := get_neighbors_for_type_at(eco_type, anchor_cell)
-		var grove_count := 0
-		for neighbor in neighbors:
-			if neighbor.type == EcosystemData.Type.FOREST_GROVE and not neighbor.is_broken:
-				grove_count += 1
-		if grove_count < 2:
-			return "Requires at least 2 Forest Groves nearby"
-
-		# Check overall Biodiversity >= 20
-		var stats := get_forest_stats()
-		if stats["biodiversity"] < 20:
-			return "Requires total forest Biodiversity >= 20"
 
 	return ""  # Valid
 
@@ -228,10 +262,18 @@ func _revert_surrounding_grass_to_dirt(anchor_cell: Vector2i, def: EcosystemData
 
 ## Place an NxM ecosystem at anchor cell.
 func place_ecosystem(anchor_cell: Vector2i, eco_type: EcosystemData.Type, is_loading: bool = false) -> EcosystemData.EcosystemInstance:
-	var error := validate_placement(anchor_cell, eco_type)
-	if error != "":
-		push_warning("Cannot place ecosystem: %s" % error)
-		return null
+	var tree_restoration := 10.0
+	var tree: Node = null
+	if Engine.get_main_loop() is SceneTree:
+		tree = (Engine.get_main_loop() as SceneTree).root.find_child("SacredTree", true, false)
+	if tree and tree.has_method("get_restoration_percent"):
+		tree_restoration = tree.get_restoration_percent()
+
+	if not is_loading:
+		var error := validate_placement(anchor_cell, eco_type, tree_restoration)
+		if error != "":
+			push_warning("Cannot place ecosystem: %s" % error)
+			return null
 
 	var def := EcosystemData.get_def(eco_type)
 	var instance := EcosystemData.create_instance(eco_type, anchor_cell)
@@ -298,6 +340,8 @@ func remove_ecosystem(anchor_cell: Vector2i) -> void:
 		return
 	var eco: EcosystemData.EcosystemInstance = _unique_ecosystems[anchor_cell]
 	var def := EcosystemData.get_def(eco.type)
+	if eco.node and is_instance_valid(eco.node):
+		eco.node.queue_free()
 	_unique_ecosystems.erase(anchor_cell)
 
 	for dx in range(def.footprint_size.x):
@@ -324,7 +368,7 @@ func _on_day_passed(_day_number: int) -> void:
 
 		if eco.is_broken:
 			eco.days_broken += 1
-			if eco.days_broken >= 3:
+			if eco.days_broken >= 5:
 				to_remove.append(anchor)
 		elif eco.is_occupied_by_human:
 			eco.biodiversity = max0(eco.biodiversity - 1)
