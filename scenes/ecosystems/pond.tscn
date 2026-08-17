@@ -34,6 +34,7 @@ script = ExtResource("1")
 position = Vector2(-7.6293945e-06, 2.9999962)
 scale = Vector2(1.7395834, 1.7395834)
 sprite_frames = SubResource("SpriteFrames_qwc0f")
+autoplay = "default"
 frame_progress = 0.031830266
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=953027281]

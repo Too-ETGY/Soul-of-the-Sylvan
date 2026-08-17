@@ -1,0 +1,149 @@
+[gd_scene format=3 uid="uid://cyrdi7itjdoxj"]
+
+[ext_resource type="Script" path="res://scripts/tutorial_overlay.gd" id="1_tut"]
+[ext_resource type="Texture2D" uid="uid://bmi7rnn8wqniw" path="res://Asset/Syva.png" id="2_syva"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_highlight"]
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.3, 0.9, 0.5, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.3, 0.9, 0.5, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bubble"]
+bg_color = Color(0.08, 0.14, 0.1, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.75, 0.45, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 6
+
+[node name="TutorialOverlay" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+script = ExtResource("1_tut")
+
+[node name="DarkOverlay" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopMask" type="ColorRect" parent="DarkOverlay"]
+layout_mode = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.75)
+
+[node name="BottomMask" type="ColorRect" parent="DarkOverlay"]
+layout_mode = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.75)
+
+[node name="LeftMask" type="ColorRect" parent="DarkOverlay"]
+layout_mode = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.75)
+
+[node name="RightMask" type="ColorRect" parent="DarkOverlay"]
+layout_mode = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.75)
+
+[node name="HighlightFrame" type="Panel" parent="DarkOverlay"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_highlight")
+
+[node name="DialogueArea" type="HBoxContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -210.0
+offset_right = 320.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="SyvaPortrait" type="TextureRect" parent="DialogueArea"]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_syva")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SpeechBubble" type="PanelContainer" parent="DialogueArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_bubble")
+
+[node name="VBox" type="VBoxContainer" parent="DialogueArea/SpeechBubble"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Margin" type="MarginContainer" parent="DialogueArea/SpeechBubble/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="InnerVBox" type="VBoxContainer" parent="DialogueArea/SpeechBubble/VBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SpeakerLabel" type="Label" parent="DialogueArea/SpeechBubble/VBox/Margin/InnerVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "Syva"
+
+[node name="MessageLabel" type="Label" parent="DialogueArea/SpeechBubble/VBox/Margin/InnerVBox"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Tutorial text goes here..."
+autowrap_mode = 3
+
+[node name="TapPrompt" type="Label" parent="DialogueArea/SpeechBubble/VBox/Margin/InnerVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "[ Tap anywhere to continue ]"
+horizontal_alignment = 2
+
+[node name="SkipButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -130.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "SKIP ⏭"

@@ -15,8 +15,12 @@ extends CanvasLayer
 @onready var biodiversity_label: Label = $LeftSidebar/StatsPanel/BioContainer/BiodiversityLabel
 
 @onready var tree_progress: ProgressBar = $LeftSidebar/SacredTreePanel/TreeProgress
-@onready var tree_percent_label: Label = $LeftSidebar/SacredTreePanel/TreePercentLabel
+@onready var tree_percent_label: Label = $LeftSidebar/SacredTreePanel/Header/TreePercentLabel
 @onready var restore_button: Button = $LeftSidebar/SacredTreePanel/RestoreButton
+
+@onready var stats_info_button: Button = $LeftSidebar/StatsPanel/Header/StatsInfoButton
+@onready var tree_info_button: Button = $LeftSidebar/SacredTreePanel/Header/TreeInfoButton
+@onready var awareness_info_button: Button = $RightSidebar/AwarenessInfoButton
 
 @onready var awareness_bar: ProgressBar = $RightSidebar/AwarenessBar
 @onready var awareness_label: Label = $RightSidebar/AwarenessLabel
@@ -71,6 +75,9 @@ func setup(placement_system: Node2D, sacred_tree: Node) -> void:
 	pond_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.POND))
 	flower_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.WILDFLOWERS))
 	dense_info_button.pressed.connect(func(): show_ecosystem_info(EcosystemData.Type.DENSE_FOREST))
+	stats_info_button.pressed.connect(show_forest_stats_info)
+	tree_info_button.pressed.connect(show_sacred_tree_info)
+	awareness_info_button.pressed.connect(show_human_awareness_info)
 	close_info_button.pressed.connect(func(): info_panel.visible = false)
 
 	var grove_def := EcosystemData.get_def(EcosystemData.Type.FOREST_GROVE)
@@ -104,7 +111,7 @@ func _process(_delta: float) -> void:
 	var dense_def := EcosystemData.get_def(EcosystemData.Type.DENSE_FOREST)
 	if tree_pct < dense_def.unlock_tree_percent:
 		dense_button.disabled = true
-		dense_button.text = "🔒 Locked\n40% Tree"
+		dense_button.text = "🔒 Locked\n20% Tree"
 	else:
 		dense_button.disabled = lf < dense_def.life_force_cost
 		dense_button.text = "🌳 Dense Forest\n%d LF" % dense_def.life_force_cost
@@ -136,6 +143,53 @@ func show_ecosystem_info(type: EcosystemData.Type) -> void:
 	bbcode += "[color=#ffcc66][b]Placement Rules:[/b][/color]\n%s\n\n" % def.placement_rules
 	bbcode += "[color=#66ffbb][b]Ecological Relationships:[/b][/color]\n%s\n\n" % def.relationships_info
 	bbcode += "[color=#cccccc][i]%s[/i][/color]" % def.description
+
+	info_content.text = bbcode
+	info_panel.visible = true
+
+
+func show_forest_stats_info() -> void:
+	info_title.text = "Forest Stats Details"
+	var bbcode := "[color=#aaddff][b]Forest Stats Overview:[/b][/color]\n"
+	bbcode += "Shows the accumulated Oxygen (O₂), Water (💧), and Biodiversity (🌿) from all active ecosystems.\n\n"
+	bbcode += "[color=#ffcc66][b]Daily Life Force Yield Formula:[/b][/color]\n"
+	bbcode += "• [color=#ffffff]Daily LF = 1 (Base) + (2 × Ecosystems) + (2 × ⌊Total Stats / 20⌋) + Balance Bonus[/color]\n\n"
+	bbcode += "[color=#66ffbb][b]Balance Bonus (+5 LF/day):[/b][/color]\n"
+	bbcode += "Awarded whenever the difference between Oxygen, Water, and Biodiversity is less than 5."
+
+	info_content.text = bbcode
+	info_panel.visible = true
+
+
+func show_sacred_tree_info() -> void:
+	info_title.text = "Sacred Tree Details"
+	var bbcode := "[color=#aaddff][b]Sacred Tree Restoration:[/b][/color]\n"
+	bbcode += "The core source of Syva's power. Restoring it increases Spirit Level and unlocks map expansion.\n\n"
+	bbcode += "[color=#ffcc66][b]Restoration Cost Formula:[/b][/color]\n"
+	bbcode += "• [color=#ffffff]+1% Restoration = 5 + (Current Restoration - 10) Life Force[/color]\n\n"
+	bbcode += "[color=#66ffbb][b]Spirit Levels & Map Unlocks:[/b][/color]\n"
+	bbcode += "• [b]Level 0 (10% Start):[/b] Initial forest area (14-cell radius).\n"
+	bbcode += "• [b]Level 1 (≥20%):[/b] Expanded area (24-cell radius) + Dense Forest unlocked.\n"
+	bbcode += "• [b]Level 2 (≥70%):[/b] Full map access unlocked."
+
+	info_content.text = bbcode
+	info_panel.visible = true
+
+
+func show_human_awareness_info() -> void:
+	info_title.text = "Human Awareness Details"
+	var bbcode := "[color=#aaddff][b]Human Awareness Mechanism:[/b][/color]\n"
+	bbcode += "Measures human consciousness of forest conservation. Higher Awareness reduces environmental threats.\n\n"
+	bbcode += "[color=#ffcc66][b]Daily Awareness Decay:[/b][/color]\n"
+	bbcode += "• [b]< 20% Tree:[/b] -1% / day\n"
+	bbcode += "• [b]≥ 20% Tree:[/b] -3% / day\n"
+	bbcode += "• [b]≥ 70% Tree:[/b] -5% / day\n\n"
+	bbcode += "[color=#66ffbb][b]Threat Spawns (After Day 5):[/b][/color]\n"
+	bbcode += "• [b]Daily Spawn Chance:[/b] (100 - Awareness)%\n"
+	bbcode += "• [b]Multi-Spawn:[/b] If Awareness ≤ 50%, up to 2 intruders can spawn.\n\n"
+	bbcode += "[color=#ff8888][b]Resolutions:[/b][/color]\n"
+	bbcode += "• [b]Intimidate (10 LF):[/b] +5% Awareness\n"
+	bbcode += "• [b]Enlighten (25 LF):[/b] +15% Awareness"
 
 	info_content.text = bbcode
 	info_panel.visible = true

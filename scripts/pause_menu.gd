@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Pause Menu modal — Continue, Reset Progress, Exit Game.
 
 @onready var continue_btn: Button = $Panel/VBox/ContinueButton
+@onready var mute_btn: Button = $Panel/VBox/MuteButton
 @onready var reset_btn: Button = $Panel/VBox/ResetButton
 @onready var exit_btn: Button = $Panel/VBox/ExitButton
 
@@ -10,8 +11,22 @@ extends CanvasLayer
 func _ready() -> void:
 	visible = false
 	continue_btn.pressed.connect(_on_continue_pressed)
+	mute_btn.pressed.connect(_on_mute_pressed)
 	reset_btn.pressed.connect(_on_reset_pressed)
 	exit_btn.pressed.connect(_on_exit_pressed)
+	_update_mute_button()
+
+
+func _on_mute_pressed() -> void:
+	var is_muted := AudioManager.toggle_mute()
+	_update_mute_button()
+
+
+func _update_mute_button() -> void:
+	if AudioManager.is_muted:
+		mute_btn.text = "🔇 Music: OFF"
+	else:
+		mute_btn.text = "🔊 Music: ON"
 
 
 func open() -> void:

@@ -49,6 +49,31 @@ func _ready() -> void:
 func _on_area_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		dialog.visible = true
+		if not SaveManager.has_completed_tutorial_2:
+			_start_tutorial_sequence_2()
+
+
+func _start_tutorial_sequence_2() -> void:
+	var tutorial_overlay := get_tree().root.find_child("TutorialOverlay", true, false)
+	if not tutorial_overlay:
+		return
+
+	var steps: Array[Dictionary] = [
+		{
+			"text": "A human intruder has appeared in our forest...",
+			"target_node_path": "Panel"
+		},
+		{
+			"text": "We need to decide what to do—Intimidate them away, or Enlighten them to teach harmony...",
+			"target_node_path": "VBox"
+		},
+		{
+			"text": "If we don't act, there might be consequences every day, damaging our ecosystem stats!",
+			"target_node_path": "DescLabel"
+		}
+	]
+
+	tutorial_overlay.call_deferred("start_sequence", 2, steps)
 
 
 func _on_intimidate_pressed() -> void:

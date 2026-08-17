@@ -9,12 +9,20 @@ signal game_loaded()
 signal progress_reset()
 
 
+var has_seen_story: bool = false
+var has_completed_tutorial_1: bool = false
+var has_completed_tutorial_2: bool = false
+
+
 func save_game() -> void:
 	var save_data := {
 		"life_force": LifeForceManager.get_life_force(),
 		"day_number": DayCycle.get_day_number(),
-		"sacred_tree_restoration": 0.0,
-		"human_awareness": 0.0,
+		"sacred_tree_restoration": 10.0,
+		"human_awareness": 70.0,
+		"has_seen_story": has_seen_story,
+		"has_completed_tutorial_1": has_completed_tutorial_1,
+		"has_completed_tutorial_2": has_completed_tutorial_2,
 		"ecosystems": []
 	}
 
@@ -81,8 +89,11 @@ func load_game() -> bool:
 
 	# Restore Sacred Tree %
 	var tree := get_tree().root.find_child("SacredTree", true, false)
-	if tree and tree.has_method("restore") and save_data.has("sacred_tree_restoration"):
-		tree._restoration_percent = float(save_data["sacred_tree_restoration"])
+	if tree and tree.has_method("restore"):
+		var tree_pct := float(save_data.get("sacred_tree_restoration", 10.0))
+		if tree_pct < 10.0:
+			tree_pct = 10.0
+		tree._restoration_percent = tree_pct
 		tree._update_visual()
 		tree.restoration_changed.emit(tree._restoration_percent, tree.get_spirit_level())
 
@@ -115,8 +126,20 @@ func load_game() -> bool:
 						main.call_deferred("spawn_human_event_on", inst)
 
 	# Restore Human Awareness
-	if main and "human_awareness" in main and save_data.has("human_awareness"):
-		main.human_awareness = float(save_data["human_awareness"])
+	if main and "human_awareness" in main:
+		var awareness := float(save_data.get("human_awareness", 70.0))
+		if awareness <= 0.0:
+			awareness = 70.0
+		main.human_awareness = awareness
+
+	if save_data.has("has_seen_story"):
+		has_seen_story = bool(save_data["has_seen_story"])
+
+	if save_data.has("has_completed_tutorial_1"):
+		has_completed_tutorial_1 = bool(save_data["has_completed_tutorial_1"])
+
+	if save_data.has("has_completed_tutorial_2"):
+		has_completed_tutorial_2 = bool(save_data["has_completed_tutorial_2"])
 
 	game_loaded.emit()
 	return true
@@ -125,6 +148,12 @@ func load_game() -> bool:
 func reset_progress() -> void:
 	if FileAccess.file_exists(SAVE_FILE_PATH):
 		DirAccess.remove_absolute(SAVE_FILE_PATH)
+
+	has_seen_story = false
+	has_completed_tutorial_1 = false
+	has_completed_tutorial_2 = false
+
+	AudioManager.stop_bgm()
 
 	# Reset managers
 	LifeForceManager._life_force = LifeForceManager.STARTING_LIFE_FORCE
@@ -137,4 +166,4 @@ func reset_progress() -> void:
 	progress_reset.emit()
 
 	get_tree().paused = false
-	get_tree().reload_current_scene()
+	get_tree().change_scene_to_file("res://scenes/story_scene.tscn")

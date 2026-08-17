@@ -11,12 +11,13 @@ config_version=5
 [application]
 
 config/name="Soul of the Sylvan (4.7)"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/story_scene.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://Asset/icon.svg"
 
 [autoload]
 
+AudioManager="*res://scripts/audio_manager.gd"
 GridManager="*res://scripts/grid_manager.gd"
 LifeForceManager="*res://scripts/life_force_manager.gd"
 DayCycle="*res://scripts/day_cycle.gd"

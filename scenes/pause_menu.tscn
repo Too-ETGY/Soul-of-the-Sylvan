@@ -15,15 +15,16 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
 
 [node name="Panel" type="Panel" parent="." unique_id=1432295497]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -120.0
-offset_top = -140.0
+offset_top = -155.0
 offset_right = 120.0
-offset_bottom = 140.0
+offset_bottom = 155.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -31,8 +32,8 @@ grow_vertical = 2
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 20.0
-offset_bottom = 50.0
+offset_top = 18.0
+offset_bottom = 48.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
 theme_override_font_sizes/font_size = 20
@@ -47,17 +48,22 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -90.0
-offset_top = -50.0
+offset_top = -95.0
 offset_right = 90.0
-offset_bottom = 110.0
+offset_bottom = 135.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="ContinueButton" type="Button" parent="Panel/VBox" unique_id=119502183]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 text = "▶ Continue"
+
+[node name="MuteButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "🔊 Music: ON"
 
 [node name="ResetButton" type="Button" parent="Panel/VBox" unique_id=43677039]
 custom_minimum_size = Vector2(0, 36)

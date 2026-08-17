@@ -11,6 +11,7 @@ var human_awareness: float = 70.0
 @onready var hud: CanvasLayer = $HUD
 @onready var sacred_tree: Sprite2D = $World/SacredTree
 @onready var pause_menu: CanvasLayer = $PauseMenu
+@onready var tutorial_overlay: CanvasLayer = $TutorialOverlay
 
 
 func _ready() -> void:
@@ -28,17 +29,70 @@ func _ready() -> void:
 
 	_update_awareness_ui()
 
+	# Start background music loop 5 seconds after game starts
+	AudioManager.start_bgm_delayed(5.0)
+
+	if not SaveManager.has_completed_tutorial_1:
+		_start_tutorial_sequence_1()
+
+
+func _start_tutorial_sequence_1() -> void:
+	var steps: Array[Dictionary] = [
+		{
+			"text": "I need to focus on restoring the balance, not destroying... Let's restore the Sacred Tree.",
+			"target_node_path": "SacredTreePanel"
+		},
+		{
+			"text": "The Sacred Tree is the heart of our forest. To restore it, we need to spend Life Force here.",
+			"target_node_path": "SacredTreePanel"
+		},
+		{
+			"text": "Life Force is the main energy... We need to gather as much of this as possible every day.",
+			"target_node_path": "LeftSidebar"
+		},
+		{
+			"text": "To gain more Life Force, we need to plant ecosystems...",
+			"target_node_path": "BottomCenterPalette"
+		},
+		{
+			"text": "Each ecosystem has a different stat...",
+			"target_node_path": "BottomCenterPalette"
+		},
+		{
+			"text": "Each ecosystem has special placement rules and relationships... Complete the relationships to gain extra stats!",
+			"target_node_path": "BottomCenterPalette"
+		},
+		{
+			"text": "Each planted ecosystem's stat is accumulated to be overall Forest Stats.",
+			"target_node_path": "StatsPanel"
+		},
+		{
+			"text": "The more Forest Stats affect gaining more LF... If balanced, we can get a bonus!",
+			"target_node_path": "StatsPanel"
+		},
+		{
+			"text": "Every day there is a chance an environmental event appears...",
+			"target_node_path": "RightSidebar"
+		},
+		{
+			"text": "The chance is portrayed by Human Awareness... The lesser it is, the higher the chance!",
+			"target_node_path": "RightSidebar"
+		}
+	]
+
+	tutorial_overlay.call_deferred("start_sequence", 1, steps)
+
 
 func _on_day_passed(day_number: int) -> void:
 	# Human Awareness Decay:
-	# - Base (< 40% Sacred Tree): -1% every day
-	# - Level 1 (>= 40% Sacred Tree): -3% every day
+	# - Base (< 20% Sacred Tree): -1% every day
+	# - Level 1 (>= 20% Sacred Tree): -3% every day
 	# - Level 2 (>= 70% Sacred Tree): -5% every day
 	var tree_pct: float = sacred_tree.get_restoration_percent() if sacred_tree else 10.0
 	var decay_rate := 1.0
 	if tree_pct >= 70.0:
 		decay_rate = 5.0
-	elif tree_pct >= 40.0:
+	elif tree_pct >= 20.0:
 		decay_rate = 3.0
 	else:
 		decay_rate = 1.0

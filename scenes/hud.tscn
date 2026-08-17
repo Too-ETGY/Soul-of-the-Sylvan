@@ -65,11 +65,27 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 15.0
-offset_top = 105.0
+offset_top = 100.0
 offset_right = -15.0
-offset_bottom = 205.0
+offset_bottom = 210.0
 grow_horizontal = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="LeftSidebar/StatsPanel" unique_id=356670725]
+layout_mode = 2
+
+[node name="StatsTitle" type="Label" parent="LeftSidebar/StatsPanel/Header" unique_id=486143656]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.9, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "Forest Stats"
+
+[node name="StatsInfoButton" type="Button" parent="LeftSidebar/StatsPanel/Header" unique_id=1958200612]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "i"
 
 [node name="OxyContainer" type="HBoxContainer" parent="LeftSidebar/StatsPanel" unique_id=381493568]
 layout_mode = 2
@@ -131,18 +147,28 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 15.0
-offset_top = 230.0
+offset_top = 225.0
 offset_right = -15.0
 offset_bottom = 350.0
 grow_horizontal = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
-[node name="TreePercentLabel" type="Label" parent="LeftSidebar/SacredTreePanel" unique_id=1442496296]
+[node name="Header" type="HBoxContainer" parent="LeftSidebar/SacredTreePanel" unique_id=1944532604]
 layout_mode = 2
+
+[node name="TreePercentLabel" type="Label" parent="LeftSidebar/SacredTreePanel/Header" unique_id=1442496296]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.9, 0.9, 0.4, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "Sacred Tree: 10%"
 horizontal_alignment = 1
+
+[node name="TreeInfoButton" type="Button" parent="LeftSidebar/SacredTreePanel/Header" unique_id=1079068272]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "i"
 
 [node name="TreeProgress" type="ProgressBar" parent="LeftSidebar/SacredTreePanel" unique_id=807701930]
 custom_minimum_size = Vector2(0, 18)
@@ -166,11 +192,21 @@ offset_right = -15.0
 offset_bottom = 75.0
 grow_horizontal = 0
 
+[node name="AwarenessInfoButton" type="Button" parent="RightSidebar" unique_id=683211639]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 1
+offset_left = 8.0
+offset_top = 6.0
+offset_right = 26.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 10
+text = "i"
+
 [node name="AwarenessLabel" type="Label" parent="RightSidebar" unique_id=87830181]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 10.0
+offset_left = 28.0
 offset_top = 5.0
 offset_right = -50.0
 offset_bottom = 22.0
@@ -183,7 +219,7 @@ text = "Human Awareness: 70%"
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 10.0
+offset_left = 28.0
 offset_top = 25.0
 offset_right = -50.0
 offset_bottom = 38.0
@@ -267,7 +303,7 @@ layout_mode = 2
 text = "🌲 Grove
 15 LF"
 
-[node name="GroveInfoButton" type="Button" parent="BottomCenterPalette/GroveButton"]
+[node name="GroveInfoButton" type="Button" parent="BottomCenterPalette/GroveButton" unique_id=1735201721]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -286,7 +322,7 @@ layout_mode = 2
 text = "💧 Pond
 20 LF"
 
-[node name="PondInfoButton" type="Button" parent="BottomCenterPalette/PondButton"]
+[node name="PondInfoButton" type="Button" parent="BottomCenterPalette/PondButton" unique_id=1709639636]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -305,7 +341,7 @@ layout_mode = 2
 text = "🌸 Flowers
 10 LF"
 
-[node name="FlowerInfoButton" type="Button" parent="BottomCenterPalette/FlowerButton"]
+[node name="FlowerInfoButton" type="Button" parent="BottomCenterPalette/FlowerButton" unique_id=867144293]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -318,13 +354,13 @@ grow_horizontal = 0
 theme_override_font_sizes/font_size = 10
 text = "i"
 
-[node name="DenseButton" type="Button" parent="BottomCenterPalette"]
+[node name="DenseButton" type="Button" parent="BottomCenterPalette" unique_id=901673131]
 custom_minimum_size = Vector2(120, 48)
 layout_mode = 2
 text = "🌳 Dense Forest
 35 LF"
 
-[node name="DenseInfoButton" type="Button" parent="BottomCenterPalette/DenseButton"]
+[node name="DenseInfoButton" type="Button" parent="BottomCenterPalette/DenseButton" unique_id=97602260]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -337,7 +373,7 @@ grow_horizontal = 0
 theme_override_font_sizes/font_size = 10
 text = "i"
 
-[node name="InfoPanel" type="Panel" parent="."]
+[node name="InfoPanel" type="Panel" parent="." unique_id=1520917795]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -351,7 +387,7 @@ offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="InfoPanel"]
+[node name="VBox" type="VBoxContainer" parent="InfoPanel" unique_id=1447499904]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -364,25 +400,25 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="Header" type="HBoxContainer" parent="InfoPanel/VBox"]
+[node name="Header" type="HBoxContainer" parent="InfoPanel/VBox" unique_id=1147395253]
 layout_mode = 2
 
-[node name="InfoTitle" type="Label" parent="InfoPanel/VBox/Header"]
+[node name="InfoTitle" type="Label" parent="InfoPanel/VBox/Header" unique_id=1719213023]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.4, 0.9, 0.6, 1)
 theme_override_font_sizes/font_size = 16
 text = "Ecosystem Details"
 
-[node name="CloseInfoButton" type="Button" parent="InfoPanel/VBox/Header"]
+[node name="CloseInfoButton" type="Button" parent="InfoPanel/VBox/Header" unique_id=766480898]
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 text = "✕"
 
-[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBox"]
+[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBox" unique_id=858283522]
 layout_mode = 2
 
-[node name="InfoContent" type="RichTextLabel" parent="InfoPanel/VBox"]
+[node name="InfoContent" type="RichTextLabel" parent="InfoPanel/VBox" unique_id=1233212602]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
@@ -418,4 +454,3 @@ grow_vertical = 0
 texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
-

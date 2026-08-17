@@ -156,13 +156,13 @@ func is_cell_sacred_tree(cell: Vector2i) -> bool:
 
 
 ## Get allowed plantable cell radius based on Sacred Tree restoration percent.
-## < 40%: Level 0 (14 cells around Sacred Tree center)
-## 40%..69%: Level 1 expansion (24 cells - covers full Sylvandrum Forest)
+## < 20%: Level 0 (14 cells around Sacred Tree center)
+## 20%..69%: Level 1 expansion (24 cells - covers full Sylvandrum Forest)
 ## >= 70%: Level 2 full access (999 cells)
 func get_allowed_radius(restoration_percent: float) -> float:
 	if restoration_percent >= 70.0:
 		return 999.0  # Full forest up to city
-	elif restoration_percent >= 40.0:
+	elif restoration_percent >= 20.0:
 		return 24.0   # Level 1 expansion
 	else:
 		return 14.0   # Initial plantable forest area around Sacred Tree

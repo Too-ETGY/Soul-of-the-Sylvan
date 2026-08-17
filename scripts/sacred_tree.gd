@@ -68,7 +68,7 @@ func _update_spirit_level() -> void:
 	var old_level := _spirit_level
 	if _restoration_percent >= 70.0:
 		_spirit_level = 2
-	elif _restoration_percent >= 40.0:
+	elif _restoration_percent >= 20.0:
 		_spirit_level = 1
 	else:
 		_spirit_level = 0

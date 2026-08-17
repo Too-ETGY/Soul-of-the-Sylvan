@@ -137,7 +137,7 @@ static func _ensure_initialized() -> void:
 	flowers.relationships_info = "• Near Pond → +3 Biodiversity\n• Near Forest Grove → +2 Biodiversity\n• Near Dense Forest → +4 Biodiversity"
 	definitions[Type.WILDFLOWERS] = flowers
 
-	# 4. Dense Forest (4x4 footprint, 6x6 checking area, unlocked at 40% Sacred Tree)
+	# 4. Dense Forest (4x4 footprint, 6x6 checking area, unlocked at 20% Sacred Tree)
 	var dense := EcosystemDef.new()
 	dense.type = Type.DENSE_FOREST
 	dense.display_name = "Dense Forest"
@@ -154,9 +154,9 @@ static func _ensure_initialized() -> void:
 	dense.margin_right = 3
 	dense.margin_top = 3
 	dense.margin_bottom = 3
-	dense.unlock_tree_percent = 40.0
-	dense.description = "A mature, canopy-rich forest ecosystem generating massive Oxygen and Biodiversity. Unlocked at Sacred Tree Level 1 (40%)."
-	dense.placement_rules = "Requires Sacred Tree restoration >= 40%.\nMust be placed on open forest land.\nKeep at least 3 cells away from another Dense Forest."
+	dense.unlock_tree_percent = 20.0
+	dense.description = "A mature, canopy-rich forest ecosystem generating massive Oxygen and Biodiversity. Unlocked at Sacred Tree Level 1 (20%)."
+	dense.placement_rules = "Requires Sacred Tree restoration >= 20%.\nMust be placed on open forest land.\nKeep at least 3 cells away from another Dense Forest."
 	dense.relationships_info = "• Near Pond → +4 Biodiversity\n• Near Forest Grove → +3 Oxygen\n• Near Dense Forest → +3 Oxygen"
 	definitions[Type.DENSE_FOREST] = dense
 
